@@ -1,0 +1,61 @@
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #f8f9fa; /* Svetlija pozadina za bolji fokus */
+}
+
+.background {
+  position: relative;
+  text-align: center;
+}
+
+.background-img {
+  width: 100%;
+  height: 60vh; /* Smanjeno sa 80vh da bi sadržaj bio vidljiviji */
+  object-fit: cover;
+  filter: brightness(70%); /* Zatamnjujemo sliku da bi se tekst bolje video */
+}
+
+.animation-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80%;
+}
+
+.animation-text h2 {
+  color: white; /* Promenjeno u belu zbog zatamnjene pozadine */
+  font-size: 3rem;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+}
+
+.bestFixers {
+  margin: 2rem auto;
+  display: flex;
+  flex-wrap: wrap; /* Da bi prešli u novi red ako ih ima više */
+  justify-content: center;
+  gap: 2rem;
+  padding: 0 20px;
+}
+
+.oneBestFixer {
+  padding: 1.5rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  transition: transform 0.3s ease;
+  min-width: 250px;
+  text-align: center;
+}
+
+.oneBestFixer:hover {
+  transform: translateY(-10px);
+  cursor: pointer;
+}
+
+.stats p {
+  font-weight: bold;
+  color: #2b3035;
+  font-size: 1.2rem;
+}

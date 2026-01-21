@@ -1,0 +1,17 @@
+.bg-glass {
+  background-color: rgba(255, 255, 255, 0.9) !important;
+  backdrop-filter: blur(10px);
+  border-radius: 15px;
+}
+
+.kont {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.background-radial-gradient {
+  background-color: #f8f9fa;
+  min-height: 100vh;
+  padding-top: 80px; /* Da ne beži pod Navbar */
+}
