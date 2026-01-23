@@ -2,7 +2,7 @@
 using backend.DTOs;
 using backend.Repository;
 using backend.Helpers;
-using backend.Services.IServices; // Obavezno uvozimo interfejs
+using backend.Services.IServices;
 using System;
 using System.Threading.Tasks;
 using BCrypt.Net;
@@ -22,24 +22,25 @@ namespace backend.Services
 
         public async Task<User> Register(UserRegisterDTO userDto)
         {
-            // 1. Provera postojanja korisnika
-            var userFound = await _userRepository.GetUserByEmail(userDto.Email!);
+            // Osiguravamo da su email i username uvek mala slova pre provere i upisa
+            string lowerEmail = userDto.Email!.ToLower();
+            string lowerUsername = userDto.Username!.ToLower();
+
+            var userFound = await _userRepository.GetUserByEmail(lowerEmail);
             if (userFound != null) throw new Exception("User with this email already exists.");
 
-            userFound = await _userRepository.GetUserByUsername(userDto.Username!);
+            userFound = await _userRepository.GetUserByUsername(lowerUsername);
             if (userFound != null) throw new Exception("User with this username already exists.");
 
-            // 2. Provera lozinke
             if (userDto.Password != userDto.RepeatedPassword)
                 throw new Exception("Password mismatch");
 
-            // 3. Kreiranje modela
             var userCreated = new User(
                 userDto.Name!,
                 userDto.LastName!,
-                userDto.Username!,
-                userDto.Email!,
-                BCrypt.Net.BCrypt.HashPassword(userDto.Password!), // Dodat !
+                lowerUsername, // Čuvamo mali username
+                lowerEmail,    // Čuvamo mali email
+                BCrypt.Net.BCrypt.HashPassword(userDto.Password!),
                 userDto.ProfilePicture ?? "default.png"
             );
 
@@ -48,7 +49,8 @@ namespace backend.Services
 
         public async Task<string> Login(string email, string password)
         {
-            var userFound = await _userRepository.GetUserByEmail(email);
+            // Login pretraga uvek sa malim slovima
+            var userFound = await _userRepository.GetUserByEmail(email.ToLower());
 
             if (userFound == null) throw new Exception("User with that mail doesn't exist");
 
@@ -92,6 +94,28 @@ namespace backend.Services
             var user = await _userRepository.GetUserById(id);
             if (user == null) throw new Exception("User not found");
             return user;
+        }
+
+        // --- ADMIN METODE SA TOLOWER() ZAŠTITOM ---
+
+        public async Task MakeUserAdmin(string username)
+        {
+            string lowerUsername = username.ToLower();
+            var user = await _userRepository.GetUserByUsername(lowerUsername);
+
+            if (user == null) throw new Exception("Korisnik sa tim korisničkim imenom ne postoji.");
+
+            await _userRepository.UpdateAdminStatus(lowerUsername, true);
+        }
+
+        public async Task DeleteUser(string username)
+        {
+            string lowerUsername = username.ToLower();
+            var user = await _userRepository.GetUserByUsername(lowerUsername);
+
+            if (user == null) throw new Exception("Korisnik nije pronađen.");
+
+            await _userRepository.DeleteByUsername(lowerUsername);
         }
     }
 }

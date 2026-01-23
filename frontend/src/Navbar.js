@@ -2,10 +2,9 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import { Container, Navbar, Nav, NavDropdown } from 'react-bootstrap';
 import React, { useEffect, useState } from 'react';
 import { IonIcon } from '@ionic/react'; 
-import { person, list } from 'ionicons/icons';
+import { person, list, shieldCheckmark } from 'ionicons/icons'; // Dodat shieldCheckmark za admin ikonicu
 
 function OurNavbar({ userId, username }) {
-  // navigate je uklonjen jer koristimo window.location za potpun reset sesije
   const [user, setUser] = useState({
     username: username || '',
     name: '',
@@ -17,7 +16,6 @@ function OurNavbar({ userId, username }) {
 
   useEffect(() => {
     const fetchUserData = async () => {
-      // Provera da li je korisnik ulogovan (userId nije -1 ili null)
       if (userId && userId !== -1) { 
         try {
           const response = await fetch(`${baseUrl}/GetUser`, {
@@ -28,7 +26,12 @@ function OurNavbar({ userId, username }) {
 
           if (response.ok) {
             const userData = await response.json();
-            setUser(userData);
+            // Backend vraća IsAdmin, stavljamo ga u state
+            setUser({
+              ...userData,
+              // Osiguravamo da isAdmin radi bilo da je property "isAdmin" ili "isadmin"
+              isAdmin: userData.isAdmin || userData.isadmin || false
+            });
           }
         } catch (error) {
           console.error('Greška pri dohvatanju profila:', error);
@@ -46,8 +49,6 @@ function OurNavbar({ userId, username }) {
         credentials: 'include',
         mode: 'cors',
       });
-      
-      // Čišćenje sesije i prebacivanje na login
       window.location.href = '/login';
     } catch (error) {
       console.error('Logout error:', error);
@@ -69,6 +70,14 @@ function OurNavbar({ userId, username }) {
                     Moji Zadaci
                   </Nav.Link>
                   <Nav.Link href="/scoreboard">Rang Lista</Nav.Link>
+
+                  {/* NOVO: Admin Dropdown meni - vidljiv samo ako je user.isAdmin true */}
+                  {(user.isAdmin) && (
+                    <NavDropdown title={<span><IonIcon icon={shieldCheckmark} style={{marginRight: '5px'}} />Admin</span>} id="admin-dropdown">
+                      <NavDropdown.Item href="/add-admin">Dodaj Admina</NavDropdown.Item>
+                      <NavDropdown.Item href="/delete-user" style={{color: 'red'}}>Obriši Korisnika</NavDropdown.Item>
+                    </NavDropdown>
+                  )}
                 </>
               )}
             </Nav>
@@ -80,8 +89,8 @@ function OurNavbar({ userId, username }) {
                 </>
               ) : (
                 <div className='d-flex align-items-center'>
-                  <span style={{color: 'white', marginRight: '10px'}}>
-                    {user.username || 'Korisnik'}
+                  <span style={{color: user.isAdmin ? '#ffc107' : 'white', marginRight: '10px', fontWeight: user.isAdmin ? 'bold' : 'normal'}}>
+                    {user.username || 'Korisnik'} {user.isAdmin && "(Admin)"}
                   </span>
                   <NavDropdown title="Profil" id="collapsible-nav-dropdown">
                     <NavDropdown.Item href="/profile">Moj profil</NavDropdown.Item>
@@ -98,7 +107,6 @@ function OurNavbar({ userId, username }) {
           </Navbar.Collapse>
         </Container>
       </Navbar>
-      {/* Ovaj div sprečava da sadržaj stranice "upadne" ispod Navbara jer je on fixed-top */}
       <div style={{ paddingTop: '80px' }}></div>
     </>
   );

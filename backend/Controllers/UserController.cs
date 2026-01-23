@@ -12,7 +12,6 @@ namespace backend.Controllers
     {
         private readonly UserService _userService;
 
-        // Koristimo Dependency Injection - ASP.NET sam ubacuje UserService ovde
         public UserController(UserService userService)
         {
             _userService = userService;
@@ -39,13 +38,12 @@ namespace backend.Controllers
             {
                 var jwt = await _userService.Login(user.Email!, user.Password!);
 
-                // Smeštanje JWT-a u HttpOnly cookie radi sigurnosti
                 Response.Cookies.Append("jwt", jwt, new CookieOptions
                 {
                     HttpOnly = true,
-                    Secure = true, // Mora biti true za SameSite.None
+                    Secure = true,
                     SameSite = SameSiteMode.None,
-                    MaxAge = TimeSpan.FromDays(1) // Dodaj trajanje
+                    MaxAge = TimeSpan.FromDays(1)
                 });
 
                 return Ok(new { message = "success" });
@@ -72,13 +70,13 @@ namespace backend.Controllers
         }
 
         [HttpPost("Logout")]
-        public IActionResult Logout() 
+        public IActionResult Logout()
         {
             Response.Cookies.Delete("jwt", new CookieOptions
             {
                 SameSite = SameSiteMode.None,
                 Secure = true,
-                HttpOnly = true 
+                HttpOnly = true
             });
 
             return Ok(new { message = "success" });
@@ -98,5 +96,35 @@ namespace backend.Controllers
             }
         }
 
+        // --- NOVE METODE ZA ADMINA ---
+
+        [HttpPut("GiveAdmin")]
+        public async Task<IActionResult> GiveAdmin([FromQuery] string username)
+        {
+            try
+            {
+                // Pozivamo servis koji smo dogovorili da napraviš
+                await _userService.MakeUserAdmin(username);
+                return Ok(new { message = $"Korisnik {username} je postao admin." });
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
+        [HttpDelete("Delete")]
+        public async Task<IActionResult> DeleteUser([FromQuery] string username)
+        {
+            try
+            {
+                await _userService.DeleteUser(username);
+                return Ok(new { message = "Korisnik uspešno obrisan." });
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
     }
 }

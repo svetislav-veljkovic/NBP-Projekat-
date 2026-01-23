@@ -10,14 +10,18 @@ namespace backend.Repository
         // Osnovne metode za Login i Registraciju
         Task<User> GetUserByEmail(string email);
         Task<User> GetUserByUsername(string username);
-        Task<User> GetUserById(Guid id); // Promenjeno u Guid
+        Task<User> GetUserById(Guid id);
 
         // Upravljanje korisnikom
         Task<User> Create(User user);
         Task<User> UpdateUser(User user);
-        Task Delete(Guid id);
 
-        // Za admin funkcije ili pretragu
+        // Brisanje po ID-u (ostavljamo tvoje) i dodajemo po username-u za frontend
+        Task Delete(Guid id);
+        Task DeleteByUsername(string username); // DODATO
+
+        // Admin funkcije
+        Task UpdateAdminStatus(string username, bool isAdmin); // DODATO
         Task<IEnumerable<User>> GetAll();
     }
 }

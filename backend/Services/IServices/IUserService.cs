@@ -12,5 +12,7 @@ namespace backend.Services.IServices // Dodato .IServices
         Task<User> GetUser(string jwt);
         Task UpdateProfile(UserUpdateDTO userDto);
         Task<User> GetById(Guid id);
+        Task MakeUserAdmin(string username);
+        Task DeleteUser(string username);
     }
 }

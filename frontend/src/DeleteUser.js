@@ -7,15 +7,22 @@ function DeleteUser() {
 
   function submit(e) {
     e.preventDefault();
-    // Tvoj backend koristi DELETE /api/User/Delete?id=... ili slično
-    const uri = `https://localhost:7248/api/User/Delete?username=${usernameToDelete}`;
+    
+    // Ključna promena: Pretvaramo u mala slova i brišemo prazna mesta
+    const cleanUsername = usernameToDelete.toLowerCase().trim();
+    const uri = `https://localhost:7248/api/User/Delete?username=${cleanUsername}`;
     
     Axios.delete(uri, { withCredentials: true })
       .then(() => {
-        toast.success(`Korisnik ${usernameToDelete} je obrisan.`);
+        toast.success(`Korisnik "${cleanUsername}" je uspešno obrisan.`);
         setUsernameToDelete('');
       })
-      .catch(err => toast.error("Greška ili nemate administratorska prava."));
+      .catch(err => {
+        // Izvlačimo tačnu poruku sa backenda (npr. "Korisnik nije pronađen")
+        const errorMessage = err.response?.data || "Greška ili nemate administratorska prava.";
+        toast.error(errorMessage);
+        console.error("Delete error:", err);
+      });
   }
 
   return (
@@ -29,16 +36,22 @@ function DeleteUser() {
           <div className='input'>
             <input 
               type='text' 
-              placeholder='Unesite korisničko ime za brisanje' 
+              placeholder='Unesite korisničko ime (npr. mare)' 
               value={usernameToDelete} 
               onChange={(e) => setUsernameToDelete(e.target.value)} 
               required 
             />
           </div>
         </div>
-        <button type='submit' className='sign-in' style={{backgroundColor: 'red'}}>Obriši trajno</button>
+        <button 
+            type='submit' 
+            className='sign-in' 
+            style={{backgroundColor: '#d9534f', border: 'none', cursor: 'pointer'}}
+        >
+            Obriši trajno
+        </button>
       </form>
-      <ToastContainer />
+      <ToastContainer position="top-right" autoClose={3000} />
     </div>
   );
 }
