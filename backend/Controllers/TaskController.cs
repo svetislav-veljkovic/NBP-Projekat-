@@ -100,5 +100,21 @@ namespace backend.Controllers
                 return BadRequest(new { message = e.Message });
             }
         }
+        [HttpGet("Leaderboard")]
+        public async Task<IActionResult> GetLeaderboard()
+        {
+            try
+            {
+                // Pozivamo Redis servis da nam vrati top 10 korisnika
+                var topUsers = await _redisService.GetTopUsers(10);
+                return Ok(topUsers);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Greška pri čitanju Redisa: {e.Message}");
+                return BadRequest(new { message = "Nije moguće učitati rang listu." });
+            }
+        }
+
     }
 }

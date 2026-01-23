@@ -8,7 +8,8 @@ import Register from './Register';
 import OurNavbar from './Navbar';
 import Profile from './Profile';
 import Edit from './Edit'; 
-import Tasks from './Tasks'; // 1. DODATO: Import komponente za zadatke
+import Tasks from './Tasks';
+import Scoreboard from './Scoreboard'; // 1. DODATO: Import Scoreboard komponente
 
 import DeleteUser from './DeleteUser';
 import AddAdmin from './AddAdmin';
@@ -54,9 +55,10 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/editprofile" element={<Edit />} /> 
-        
-        {/* 2. DODATA RUTA: Sada React Router zna šta je "/tasks" */}
         <Route path="/tasks" element={<Tasks userId={userId} />} />
+        
+        {/* 2. DODATA RUTA: Povezujemo putanju sa Scoreboard komponentom */}
+        <Route path="/scoreboard" element={<Scoreboard />} />
         
         <Route path="/delete-user" element={<DeleteUser />} />
         <Route path="/add-admin" element={<AddAdmin />} />

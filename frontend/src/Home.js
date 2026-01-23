@@ -10,9 +10,10 @@ function Home() {
   const [bestUsers, setBestUsers] = useState([]);
 
   useEffect(() => {
-    // Dohvatamo samo scoreboard za početnu
-    Axios.get("https://localhost:7248/api/User/Scoreboard")
+    // IZMENJENO: Putanja do novog Leaderboard endpoint-a
+    Axios.get("https://localhost:7248/api/Task/Leaderboard")
       .then(res => {
+        // Uzimamo prva 4 za preview na početnoj
         setBestUsers(res.data.slice(0, 4));
       })
       .catch(err => console.error('Greška pri dohvatanju scoreboard-a:', err));
@@ -47,9 +48,11 @@ function Home() {
                 <MDBCard className='text-center shadow-2 border-0' style={{ borderRadius: '20px' }}>
                   <MDBCardBody>
                     <MDBIcon fas icon="user-circle" size="3x" className="mb-2 text-dark" />
-                    <h5>@{user.username}</h5>
+                    {/* IZMENJENO: user.key je username iz Redisa */}
+                    <h5>@{user.key}</h5>
                     <div className='badge bg-warning text-dark' style={{ fontSize: '0.9rem' }}>
-                      {user.points} pts
+                      {/* IZMENJENO: user.value su poeni iz Redisa */}
+                      {user.value} pts
                     </div>
                     <p className='small text-muted mt-2 mb-0'>Rank #{index + 1}</p>
                   </MDBCardBody>
