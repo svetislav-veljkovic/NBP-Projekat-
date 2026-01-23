@@ -15,18 +15,19 @@ builder.Services.AddSingleton<CassandraService>();
 
 // --- 2. REPOZITORIJUMI ---
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<ITaskRepository, TaskRepository>(); // DODATO ZA TASKOVE
 
 // --- 3. SERVISI ---
 builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<UserService>(); // Tvoj kontroler traži konkretnu klasu
+builder.Services.AddScoped<RedisService>(); // DODATO ZA SCOREBOARD
 builder.Services.AddSingleton<JwtService>();
 builder.Services.AddHttpContextAccessor();
 
-// --- 4. KONTROLERI SA JSON OPCIJAMA ---
+// --- 4. KONTROLERI ---
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
-        // Ovo osigurava da backend i frontend pričaju istim jezikom (camelCase)
         options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
     });
 
@@ -41,7 +42,7 @@ builder.Services.AddCors(options =>
         {
             policy.WithOrigins("http://localhost:3000")
                   .AllowAnyMethod()
-                  .AllowCredentials() // OBAVEZNO za JWT kolačiće
+                  .AllowCredentials()
                   .AllowAnyHeader();
         });
 });
@@ -54,14 +55,10 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-// REDOSLED JE OVDE KRITIČAN:
 app.UseRouting();
-
-app.UseCors("AllowReactApp"); // Mora biti posle Routing, a pre Auth
-
+app.UseCors("AllowReactApp");
 app.UseAuthentication();
 app.UseAuthorization();
-
 app.MapControllers();
 
 app.Run();

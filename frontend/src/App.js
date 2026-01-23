@@ -8,6 +8,7 @@ import Register from './Register';
 import OurNavbar from './Navbar';
 import Profile from './Profile';
 import Edit from './Edit'; 
+import Tasks from './Tasks'; // 1. DODATO: Import komponente za zadatke
 
 import DeleteUser from './DeleteUser';
 import AddAdmin from './AddAdmin';
@@ -15,7 +16,6 @@ import AddAdmin from './AddAdmin';
 function App() {
   const [username, setUsername] = useState('');
   const [userId, setUserId] = useState(null);
-  // 1. DODATO: Stanje za proveru admin prava
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
@@ -31,7 +31,6 @@ function App() {
           const content = await response.json();
           setUsername(content.username || content.Username);
           setUserId(content.id || content.Id);
-          // 2. DODATO: Čitamo isAdmin polje iz baze (Cassandra)
           setIsAdmin(content.isAdmin || content.isadmin || false);
         } else {
           setUserId(null);
@@ -43,12 +42,10 @@ function App() {
       }
     };
     fetchUser();
-    // 3. DODATO: userId u dependency array da se osveži nakon logina
   }, [userId]); 
 
   return (
     <BrowserRouter>
-      {/* 4. PROSLEĐUJEMO isAdmin u Navbar da bi on znao da prikaže dugmiće */}
       <OurNavbar userId={userId} username={username} isAdmin={isAdmin} />
       
       <Routes>
@@ -58,7 +55,9 @@ function App() {
         <Route path="/profile" element={<Profile />} />
         <Route path="/editprofile" element={<Edit />} /> 
         
-        {/* 5. NOVE RUTE: Bez ovoga stranice ne postoje u browseru */}
+        {/* 2. DODATA RUTA: Sada React Router zna šta je "/tasks" */}
+        <Route path="/tasks" element={<Tasks userId={userId} />} />
+        
         <Route path="/delete-user" element={<DeleteUser />} />
         <Route path="/add-admin" element={<AddAdmin />} />
       </Routes>

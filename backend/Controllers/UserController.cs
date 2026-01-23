@@ -1,4 +1,4 @@
-using backend.Helpers;
+﻿using backend.Helpers;
 using backend.Services;
 using backend.DTOs;
 using backend.Models;
@@ -103,7 +103,7 @@ namespace backend.Controllers
         {
             try
             {
-                // Pozivamo servis koji smo dogovorili da napravi�
+                // Pozivamo servis koji smo dogovorili da napraviš
                 await _userService.MakeUserAdmin(username);
                 return Ok(new { message = $"Korisnik {username} je postao admin." });
             }
@@ -119,7 +119,29 @@ namespace backend.Controllers
             try
             {
                 await _userService.DeleteUser(username);
-                return Ok(new { message = "Korisnik uspe�no obrisan." });
+                return Ok(new { message = "Korisnik uspešno obrisan." });
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+        [HttpGet("Scoreboard")]
+        public async Task<IActionResult> GetScoreboard([FromServices] RedisService redisService)
+        {
+            try
+            {
+                // Pozivamo tvoju postojeću metodu GetTopUsers
+                var topUsers = await redisService.GetTopUsers(10);
+
+                // Mapiramo KeyValuePair u jednostavan objekat koji React očekuje
+                var result = topUsers.Select(x => new
+                {
+                    username = x.Key,
+                    points = x.Value
+                });
+
+                return Ok(result);
             }
             catch (Exception e)
             {

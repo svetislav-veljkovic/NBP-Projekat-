@@ -1,41 +1,21 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import './App.css';
 import { infinite } from 'ionicons/icons';
-import 'bootstrap/dist/css/bootstrap.min.css';
 import background from './background.jpg';
-import { Typewriter, Cursor } from 'react-simple-typewriter'
+import { Typewriter, Cursor } from 'react-simple-typewriter';
+import { MDBContainer, MDBRow, MDBCol, MDBCard, MDBCardBody, MDBIcon } from 'mdb-react-ui-kit';
+import Axios from 'axios';
 
 function Home() {
-  const navigate = useNavigate();
   const [bestUsers, setBestUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  const baseUrl = "https://localhost:7248/api/User";
 
   useEffect(() => {
-    const fetchScoreboard = async () => {
-      try {
-        // Pretpostavljamo da tvoj Redis Scoreboard vraća listu najboljih
-        const response = await fetch(`${baseUrl}/GetAll`, {
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          mode: 'cors',
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          // Uzimamo top 3 za početnu stranu
-          setBestUsers(data.slice(0, 3));
-        }
-      } catch (error) {
-        console.error('Error fetching scoreboard:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchScoreboard();
+    // Dohvatamo samo scoreboard za početnu
+    Axios.get("https://localhost:7248/api/User/Scoreboard")
+      .then(res => {
+        setBestUsers(res.data.slice(0, 4));
+      })
+      .catch(err => console.error('Greška pri dohvatanju scoreboard-a:', err));
   }, []);
 
   return (
@@ -45,7 +25,7 @@ function Home() {
         <div className='animation-text'>
           <h2>
             <Typewriter 
-              words={['Organizuj svoje obaveze.', 'Budi produktivan svaki dan.']} 
+              words={['Organizuj se.', 'Budi produktivan.', 'Pobedi na listi!']} 
               loop={infinite} 
               typeSpeed={50} 
               deleteSpeed={50} 
@@ -55,22 +35,32 @@ function Home() {
         </div>
       </div>
 
-      <h2 className='recommended-title'>Najbolje rangirani korisnici (Scoreboard)</h2>
-      <div className="bestFixers">
-        {loading ? <p>Učitavanje rang liste...</p> : 
-          bestUsers.map(user => (
-            <div key={user.id} className='oneBestFixer' onClick={() => navigate('/profile')}>
-              <div className='nameLastName'>
-                <h3>{user.name} {user.lastName}</h3>
-              </div>
-              <h4>@{user.username}</h4>
-              <div className='stats'>
-                <p>Poeni: {user.points || 0}</p>
-              </div>
-            </div>
-          ))
-        }
-      </div>
+      <MDBContainer className='mt-5 pb-5'>
+        <h2 className='text-center mb-5' style={{ fontWeight: 'bold' }}>
+          🏆 Top Korisnici (Redis)
+        </h2>
+        
+        <MDBRow className="justify-content-center">
+          {bestUsers.length > 0 ? (
+            bestUsers.map((user, index) => (
+              <MDBCol md="3" key={index} className="mb-3">
+                <MDBCard className='text-center shadow-2 border-0' style={{ borderRadius: '20px' }}>
+                  <MDBCardBody>
+                    <MDBIcon fas icon="user-circle" size="3x" className="mb-2 text-dark" />
+                    <h5>@{user.username}</h5>
+                    <div className='badge bg-warning text-dark' style={{ fontSize: '0.9rem' }}>
+                      {user.points} pts
+                    </div>
+                    <p className='small text-muted mt-2 mb-0'>Rank #{index + 1}</p>
+                  </MDBCardBody>
+                </MDBCard>
+              </MDBCol>
+            ))
+          ) : (
+            <p className="text-center text-muted">Učitavanje rang liste...</p>
+          )}
+        </MDBRow>
+      </MDBContainer>
     </>
   );
 }

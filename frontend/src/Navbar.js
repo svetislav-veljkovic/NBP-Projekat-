@@ -2,7 +2,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import { Container, Navbar, Nav, NavDropdown } from 'react-bootstrap';
 import React, { useEffect, useState } from 'react';
 import { IonIcon } from '@ionic/react'; 
-import { person, list, shieldCheckmark } from 'ionicons/icons'; // Dodat shieldCheckmark za admin ikonicu
+import { person, list, shieldCheckmark } from 'ionicons/icons';
 
 function OurNavbar({ userId, username }) {
   const [user, setUser] = useState({
@@ -26,10 +26,8 @@ function OurNavbar({ userId, username }) {
 
           if (response.ok) {
             const userData = await response.json();
-            // Backend vraća IsAdmin, stavljamo ga u state
             setUser({
               ...userData,
-              // Osiguravamo da isAdmin radi bilo da je property "isAdmin" ili "isadmin"
               isAdmin: userData.isAdmin || userData.isadmin || false
             });
           }
@@ -63,16 +61,16 @@ function OurNavbar({ userId, username }) {
           <Navbar.Toggle aria-controls="responsive-navbar-nav" />
           <Navbar.Collapse id="responsive-navbar-nav">
             <Nav className="me-auto">
+              {/* IZMENJENO: href sada vodi na /tasks umesto na / */}
               {userId && userId !== -1 && (
                 <>
-                  <Nav.Link href="/">
+                  <Nav.Link href="/tasks">
                     <IonIcon icon={list} style={{marginRight: '5px'}}></IonIcon>
                     Moji Zadaci
                   </Nav.Link>
                   <Nav.Link href="/scoreboard">Rang Lista</Nav.Link>
 
-                  {/* NOVO: Admin Dropdown meni - vidljiv samo ako je user.isAdmin true */}
-                  {(user.isAdmin) && (
+                  {user.isAdmin && (
                     <NavDropdown title={<span><IonIcon icon={shieldCheckmark} style={{marginRight: '5px'}} />Admin</span>} id="admin-dropdown">
                       <NavDropdown.Item href="/add-admin">Dodaj Admina</NavDropdown.Item>
                       <NavDropdown.Item href="/delete-user" style={{color: 'red'}}>Obriši Korisnika</NavDropdown.Item>
@@ -81,6 +79,7 @@ function OurNavbar({ userId, username }) {
                 </>
               )}
             </Nav>
+            
             <Nav>
               {(!userId || userId === -1) ? (
                 <>
