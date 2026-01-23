@@ -6,6 +6,10 @@ import Home from './Home';
 import LogIn from './LogIn';
 import Register from './Register';
 import OurNavbar from './Navbar';
+import Profile from './Profile';
+// OBRATI PAŽNJU OVDE: 
+// Ako se fajl zove Edit.js, uvoziš Edit. Ako se zove EditProfile.js, uvoziš EditProfile.
+import Edit from './Edit'; 
 
 function App() {
   const [username, setUsername] = useState('');
@@ -22,8 +26,8 @@ function App() {
 
         if (response.ok) {
           const content = await response.json();
-          setUsername(content.username);
-          setUserId(content.id);
+          setUsername(content.username || content.Username);
+          setUserId(content.id || content.Id);
         } else {
           setUserId(null);
           setUsername('');
@@ -33,7 +37,7 @@ function App() {
       }
     };
     fetchUser();
-  }, [userId]);
+  }, []);
 
   return (
     <BrowserRouter>
@@ -42,6 +46,10 @@ function App() {
         <Route path="/" element={<Home userId={userId} />} />
         <Route path="/login" element={<LogIn setUsername={setUsername} setUserId={setUserId}/>} />
         <Route path="/register" element={<Register />} />
+        <Route path="/profile" element={<Profile />} />
+        
+        {/* Putanja ostaje ista, ali element mora da odgovara imenu koji si uvezao gore */}
+        <Route path="/editprofile" element={<Edit />} /> 
       </Routes>
     </BrowserRouter>
   );

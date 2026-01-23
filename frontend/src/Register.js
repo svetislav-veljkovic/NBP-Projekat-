@@ -27,33 +27,36 @@ function Register() {
   const submit = (e) => {
     e.preventDefault();
 
-    // 1. Validacija lozinki na frontendu
+    // 1. Provera na frontendu (da ne šaljemo džabe zahtev ako su različite)
     if (data.password !== data.repeatedPassword) {
-      toast.error("Lozinke se ne podudaraju!");
+      toast.error("Lozinke se ne podudaraju na frontendu!");
       return;
     }
 
-    // 2. Payload bez "repeatedPassword" (onako kako backend očekuje)
+    // 2. PAYLOAD - Sadrži SVA polja koja UserRegisterDTO u C# očekuje
     const payload = {
       name: data.name,
       lastName: data.lastName,
       username: data.username,
       email: data.email,
       password: data.password,
+      repeatedPassword: data.repeatedPassword, // SADA JE OVDE - Backend ovo traži za proveru
       profilePicture: data.profilePicture
     };
 
-    // 3. Axios poziv
+    // 3. Axios poziv ka backendu
     Axios.post(url, payload, {
       withCredentials: true,
       headers: { 'Content-Type': 'application/json' }
     })
       .then((res) => {
         toast.success("Uspešna registracija!");
+        // Prebacujemo na login nakon 2 sekunde
         setTimeout(() => navigate('/login'), 2000);
       })
       .catch((error) => {
-        console.error("Server Error:", error.response);
+        console.error("Server Error Details:", error.response);
+        // Hvatanje specifične poruke sa backenda (npr. "User already exists")
         const errorMsg = error.response?.data || "Greška pri registraciji";
         toast.error(typeof errorMsg === 'string' ? errorMsg : "Neispravni podaci.");
       });
