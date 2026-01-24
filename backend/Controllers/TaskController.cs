@@ -1,10 +1,11 @@
 ﻿using backend.Models;
-using backend.DTOs; // DODATO: Namespace gde se nalazi CreateTaskDTO
+using backend.DTOs;
 using backend.Repository;
 using backend.Services;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace backend.Controllers
@@ -25,7 +26,7 @@ namespace backend.Controllers
         }
 
         [HttpPost("Add")]
-        public async Task<IActionResult> AddTask([FromBody] CreateTaskDTO taskDto) // IZMENJENO: Prima DTO, ne Model
+        public async Task<IActionResult> AddTask([FromBody] CreateTaskDTO taskDto)
         {
             try
             {
@@ -34,10 +35,9 @@ namespace backend.Controllers
 
                 var user = await _userService.GetUser(jwt);
 
-                // Ručno kreiramo Model na osnovu DTO-a
                 var task = new TodoTask
                 {
-                    UserId = user.Id, // ID dobijamo iz tokena, sigurno je
+                    UserId = user.Id,
                     Title = taskDto.Title,
                     Description = taskDto.Description,
                     CreatedAt = DateTime.UtcNow,
@@ -49,7 +49,6 @@ namespace backend.Controllers
             }
             catch (Exception e)
             {
-                // Vraćamo objekat sa porukom radi lakšeg čitanja na frontendu
                 return BadRequest(new { message = e.Message });
             }
         }
@@ -64,8 +63,11 @@ namespace backend.Controllers
 
                 var user = await _userService.GetUser(jwt);
 
+                // Uzimamo samo zadatke koji NISU završeni za prikaz u listi
                 var tasks = await _taskRepo.GetByUserId(user.Id);
-                return Ok(tasks);
+                var activeTasks = tasks.Where(t => !t.IsCompleted).ToList();
+
+                return Ok(activeTasks);
             }
             catch (Exception e)
             {
@@ -86,11 +88,11 @@ namespace backend.Controllers
                 var task = await _taskRepo.GetById(user.Id, taskId);
                 if (task == null) return NotFound("Zadatak nije pronađen.");
 
-                // 1. Obriši iz Cassandre
-                await _taskRepo.Delete(user.Id, taskId);
+                // IZMENA: Umesto Delete, radimo Update statusa
+                task.IsCompleted = true;
+                await _taskRepo.Create(task); // Cassandra Mapping Create radi i Upsert (Update)
 
-                // 2. Dodeli poene u Redis Scoreboard
-                // Koristimo Username jer Redis Scoreboard obično čuva string ključeve
+                // Dodeli poene u Redis
                 await _redisService.IncrementScore(user.Username!, 10);
 
                 return Ok(new { message = "Zadatak završen, dobili ste 10 poena!", points = 10 });
@@ -100,21 +102,50 @@ namespace backend.Controllers
                 return BadRequest(new { message = e.Message });
             }
         }
+
         [HttpGet("Leaderboard")]
         public async Task<IActionResult> GetLeaderboard()
         {
             try
             {
-                // Pozivamo Redis servis da nam vrati top 10 korisnika
                 var topUsers = await _redisService.GetTopUsers(10);
                 return Ok(topUsers);
             }
             catch (Exception e)
             {
-                Console.WriteLine($"Greška pri čitanju Redisa: {e.Message}");
                 return BadRequest(new { message = "Nije moguće učitati rang listu." });
             }
         }
 
+        // NOVO: Endpoint za podatke o produktivnosti (Dijagram)
+        [HttpGet("ProductivityData")]
+        public async Task<IActionResult> GetProductivityData()
+        {
+            try
+            {
+                var jwt = Request.Cookies["jwt"];
+                if (string.IsNullOrEmpty(jwt)) return Unauthorized();
+
+                var user = await _userService.GetUser(jwt);
+                var allTasks = await _taskRepo.GetByUserId(user.Id);
+
+                // Grupišemo završene zadatke po datumu
+                var chartData = allTasks
+                    .Where(t => t.IsCompleted)
+                    .GroupBy(t => t.CreatedAt.ToString("yyyy-MM-dd"))
+                    .Select(g => new {
+                        day = g.Key,
+                        count = g.Count()
+                    })
+                    .OrderBy(x => x.day)
+                    .ToList();
+
+                return Ok(chartData);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new { message = "Greška pri obradi podataka za dijagram." });
+            }
+        }
     }
 }

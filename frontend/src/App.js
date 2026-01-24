@@ -9,7 +9,8 @@ import OurNavbar from './Navbar';
 import Profile from './Profile';
 import Edit from './Edit'; 
 import Tasks from './Tasks';
-import Scoreboard from './Scoreboard'; // 1. DODATO: Import Scoreboard komponente
+import Scoreboard from './Scoreboard';
+import ProductivityChart from './ProductivityChart'; // DODATO: Import komponente sa dijagramom
 
 import DeleteUser from './DeleteUser';
 import AddAdmin from './AddAdmin';
@@ -47,6 +48,7 @@ function App() {
 
   return (
     <BrowserRouter>
+      {/* Navbar sada ima sve potrebne linkove */}
       <OurNavbar userId={userId} username={username} isAdmin={isAdmin} />
       
       <Routes>
@@ -56,9 +58,10 @@ function App() {
         <Route path="/profile" element={<Profile />} />
         <Route path="/editprofile" element={<Edit />} /> 
         <Route path="/tasks" element={<Tasks userId={userId} />} />
-        
-        {/* 2. DODATA RUTA: Povezujemo putanju sa Scoreboard komponentom */}
         <Route path="/scoreboard" element={<Scoreboard />} />
+        
+        {/* NOVO: Ruta za dijagram produktivnosti */}
+        <Route path="/productivity" element={<ProductivityChart />} />
         
         <Route path="/delete-user" element={<DeleteUser />} />
         <Route path="/add-admin" element={<AddAdmin />} />

@@ -2,7 +2,8 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import { Container, Navbar, Nav, NavDropdown } from 'react-bootstrap';
 import React, { useEffect, useState } from 'react';
 import { IonIcon } from '@ionic/react'; 
-import { person, list, shieldCheckmark } from 'ionicons/icons';
+// DODATO: statsChart ikonica
+import { person, list, shieldCheckmark, statsChart } from 'ionicons/icons';
 
 function OurNavbar({ userId, username }) {
   const [user, setUser] = useState({
@@ -61,13 +62,19 @@ function OurNavbar({ userId, username }) {
           <Navbar.Toggle aria-controls="responsive-navbar-nav" />
           <Navbar.Collapse id="responsive-navbar-nav">
             <Nav className="me-auto">
-              {/* IZMENJENO: href sada vodi na /tasks umesto na / */}
               {userId && userId !== -1 && (
                 <>
                   <Nav.Link href="/tasks">
                     <IonIcon icon={list} style={{marginRight: '5px'}}></IonIcon>
                     Moji Zadaci
                   </Nav.Link>
+                  
+                  {/* NOVO: Link za Produktivnost */}
+                  <Nav.Link href="/productivity">
+                    <IonIcon icon={statsChart} style={{marginRight: '5px'}}></IonIcon>
+                    Produktivnost
+                  </Nav.Link>
+
                   <Nav.Link href="/scoreboard">Rang Lista</Nav.Link>
 
                   {user.isAdmin && (

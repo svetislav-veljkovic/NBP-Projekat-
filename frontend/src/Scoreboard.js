@@ -39,7 +39,8 @@ function Scoreboard() {
                                     </td>
                                     <td><strong>@{user.key}</strong></td>
                                     <td>
-                                        <span className="badge badge-success px-3 py-2" style={{fontSize: '0.85rem'}}>
+                                        {/* IZMENJENO: bg-dark postavlja crnu boju, text-white osigurava da se tekst vidi */}
+                                        <span className="badge bg-dark text-white px-3 py-2" style={{fontSize: '0.85rem'}}>
                                             {user.value} pts
                                         </span>
                                     </td>
