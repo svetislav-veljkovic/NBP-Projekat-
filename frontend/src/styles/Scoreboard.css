@@ -1,0 +1,62 @@
+/* Stilovi za tabelu */
+.custom-table thead {
+    background-color: #2B3035;
+    color: white;
+}
+
+.custom-table thead th {
+    padding: 18px !important;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+    letter-spacing: 1px;
+}
+
+.custom-table tbody tr {
+    transition: all 0.2s ease;
+    border-bottom: 1px solid #eee;
+}
+
+.user-name {
+    font-weight: 600;
+    color: #2B3035;
+    font-size: 1.1rem;
+}
+
+/* Badge za poene */
+.points-badge {
+    background-color: #2B3035;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 50px;
+    font-weight: bold;
+    display: inline-block;
+    min-width: 80px;
+}
+
+/* Posebni stilovi za TOP 3 mesta */
+.top-rank-1 {
+    background-color: rgba(255, 215, 0, 0.05) !important; /* Blago zlatna pozadina */
+}
+
+.top-rank-1 .rank-badge {
+    font-size: 1.5rem;
+}
+
+.gold-glow {
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+    border: 1px solid #ffc107;
+}
+
+/* Badge za rang */
+.rank-badge {
+    font-weight: 800;
+    font-size: 1.1rem;
+    color: #6c757d;
+}
+
+/* Hover efekat na redove */
+.custom-table tbody tr:hover {
+    background-color: #f1f3f5 !important;
+    transform: scale(1.002);
+}

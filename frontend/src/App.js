@@ -1,19 +1,26 @@
 import React, { useEffect, useState } from 'react';
-import './App.css';
-import 'bootstrap/dist/css/bootstrap.min.css';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import Home from './Home';
-import LogIn from './LogIn';
-import Register from './Register';
-import OurNavbar from './Navbar';
-import Profile from './Profile';
-import Edit from './Edit'; 
-import Tasks from './Tasks';
-import Scoreboard from './Scoreboard';
-import ProductivityChart from './ProductivityChart'; // DODATO: Import komponente sa dijagramom
 
-import DeleteUser from './DeleteUser';
-import AddAdmin from './AddAdmin';
+// 1. STILOVI (Sada su u /styles)
+import './styles/App.css';
+import 'bootstrap/dist/css/bootstrap.min.css';
+
+// 2. STRANICE (Sada su u /pages)
+import Home from './pages/Home';
+import LogIn from './pages/LogIn';
+import Register from './pages/Register';
+import Profile from './pages/Profile';
+import Edit from './pages/Edit'; // ISPRAVLJENO: Putanja je sada ./pages/Edit
+import Tasks from './pages/Tasks';
+import Scoreboard from './pages/Scoreboard';
+
+// 3. KOMPONENTE (Sada su u /components)
+import OurNavbar from './components/Navbar';
+import ProductivityChart from './components/ProductivityChart';
+
+// 4. ADMIN (Sada su u /admin)
+import DeleteUser from './admin/DeleteUser';
+import AddAdmin from './admin/AddAdmin';
 
 function App() {
   const [username, setUsername] = useState('');
@@ -48,24 +55,27 @@ function App() {
 
   return (
     <BrowserRouter>
-      {/* Navbar sada ima sve potrebne linkove */}
+      {/* Navbar sa prosleđenim podacima o sesiji */}
       <OurNavbar userId={userId} username={username} isAdmin={isAdmin} />
       
-      <Routes>
-        <Route path="/" element={<Home userId={userId} />} />
-        <Route path="/login" element={<LogIn setUsername={setUsername} setUserId={setUserId}/>} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/editprofile" element={<Edit />} /> 
-        <Route path="/tasks" element={<Tasks userId={userId} />} />
-        <Route path="/scoreboard" element={<Scoreboard />} />
-        
-        {/* NOVO: Ruta za dijagram produktivnosti */}
-        <Route path="/productivity" element={<ProductivityChart />} />
-        
-        <Route path="/delete-user" element={<DeleteUser />} />
-        <Route path="/add-admin" element={<AddAdmin />} />
-      </Routes>
+      <div className="container-fluid mt-3">
+        <Routes>
+          <Route path="/" element={<Home userId={userId} />} />
+          <Route path="/login" element={<LogIn setUsername={setUsername} setUserId={setUserId}/>} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/editprofile" element={<Edit />} /> 
+          <Route path="/tasks" element={<Tasks userId={userId} />} />
+          <Route path="/scoreboard" element={<Scoreboard />} />
+          
+          {/* Ruta za dijagram produktivnosti */}
+          <Route path="/productivity" element={<ProductivityChart />} />
+          
+          {/* Admin rute */}
+          <Route path="/delete-user" element={<DeleteUser />} />
+          <Route path="/add-admin" element={<AddAdmin />} />
+        </Routes>
+      </div>
     </BrowserRouter>
   );
 }

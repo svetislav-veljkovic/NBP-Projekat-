@@ -3,8 +3,9 @@ import { ToastContainer, toast } from 'react-toastify';
 import { MDBContainer, MDBRow, MDBCol, MDBCard, MDBCardBody, MDBInput } from 'mdb-react-ui-kit';
 import { useNavigate } from 'react-router-dom';
 import Axios from 'axios';
-import './Register.css';
-import { Button } from 'react-bootstrap';
+import '../styles/Register.css';
+import '../styles/App.css'; // Dodajemo zbog btn-dark-custom i ostalih klasa
+
 
 function Register() {
   const [data, setData] = useState({
@@ -27,60 +28,60 @@ function Register() {
   const submit = (e) => {
     e.preventDefault();
 
-    // 1. Provera na frontendu (da ne šaljemo džabe zahtev ako su različite)
     if (data.password !== data.repeatedPassword) {
-      toast.error("Lozinke se ne podudaraju na frontendu!");
+      toast.error("Lozinke se ne podudaraju!");
       return;
     }
 
-    // 2. PAYLOAD - Sadrži SVA polja koja UserRegisterDTO u C# očekuje
     const payload = {
       name: data.name,
       lastName: data.lastName,
       username: data.username,
       email: data.email,
       password: data.password,
-      repeatedPassword: data.repeatedPassword, // SADA JE OVDE - Backend ovo traži za proveru
+      repeatedPassword: data.repeatedPassword,
       profilePicture: data.profilePicture
     };
 
-    // 3. Axios poziv ka backendu
     Axios.post(url, payload, {
       withCredentials: true,
       headers: { 'Content-Type': 'application/json' }
     })
       .then((res) => {
-        toast.success("Uspešna registracija!");
-        // Prebacujemo na login nakon 2 sekunde
+        toast.success("Uspešna registracija! Preusmeravanje...");
         setTimeout(() => navigate('/login'), 2000);
       })
       .catch((error) => {
-        console.error("Server Error Details:", error.response);
-        // Hvatanje specifične poruke sa backenda (npr. "User already exists")
         const errorMsg = error.response?.data || "Greška pri registraciji";
         toast.error(typeof errorMsg === 'string' ? errorMsg : "Neispravni podaci.");
       });
   };
 
   return (
-    <>
-      <form onSubmit={submit}>
-        <MDBContainer fluid className="p-4 background-radial-gradient" style={{ minHeight: '100vh' }}>
-          <MDBRow className="d-flex justify-content-center align-items-center">
-            
-            <MDBCol md="6" className="text-center text-md-start d-flex flex-column justify-content-center">
-              <h1 className="my-5 display-3 fw-bold ls-tight px-3" style={{ color: '#555' }}>
-                Pridruži se <br />
-                <span style={{ color: '#2B3035' }}>Organizuj obaveze lako</span>
-              </h1>
-              <p className="px-3" style={{ color: 'hsl(217, 10%, 50.8%)' }}>
-                Dobrodošli u TodoApp. Registrujte se i počnite sa korišćenjem sistema.
-              </p>
-            </MDBCol>
+    <div className='background-radial-gradient'>
+      <MDBContainer fluid className="p-4">
+        <MDBRow className="d-flex justify-content-center align-items-center min-vh-100">
+          
+          <MDBCol md="6" className="text-center text-md-start d-flex flex-column justify-content-center">
+            <h1 className="my-5 display-3 fw-bold ls-tight px-3" style={{ color: '#555' }}>
+              Pridruži se <br />
+              <span style={{ color: '#2B3035' }}>Organizuj se lako</span>
+            </h1>
+            <p className="px-3 text-muted">
+              Dobrodošli u TodoApp. Postanite deo zajednice koja efikasno upravlja svojim vremenom i zadacima.
+            </p>
+          </MDBCol>
 
-            <MDBCol md="6" style={{ maxWidth: '500px' }}>
-              <MDBCard className="bg-glass shadow-5">
-                <MDBCardBody className="p-5">
+          <MDBCol md="6" style={{ maxWidth: '500px' }}>
+            <MDBCard className="bg-glass shadow-5">
+              <MDBCardBody className="p-5">
+                {/* Naslov sekcije unutar kartice */}
+                <div className='header mb-4' style={{alignItems: 'flex-start'}}>
+                    <div className='text' style={{fontSize: '28px'}}>Registracija</div>
+                    <div className='underline' style={{margin: '0', width: '40px'}}></div>
+                </div>
+
+                <form onSubmit={submit}>
                   <MDBRow>
                     <MDBCol col="6">
                       <MDBInput onChange={handleInputChange} id="name" label="Ime" type="text" required wrapperClass="mb-4" />
@@ -91,25 +92,25 @@ function Register() {
                   </MDBRow>
                   
                   <MDBInput onChange={handleInputChange} id="username" label="Korisničko ime" type="text" required wrapperClass="mb-4" />
-                  <MDBInput onChange={handleInputChange} id="email" label="Email" type="email" required wrapperClass="mb-4" />
+                  <MDBInput onChange={handleInputChange} id="email" label="Email adresa" type="email" required wrapperClass="mb-4" />
                   <MDBInput onChange={handleInputChange} id="password" label="Lozinka" type="password" required wrapperClass="mb-4" />
-                  <MDBInput onChange={handleInputChange} id="repeatedPassword" label="Ponovi lozinku" type="password" required wrapperClass="mb-4" />
+                  <MDBInput onChange={handleInputChange} id="repeatedPassword" label="Ponovite lozinku" type="password" required wrapperClass="mb-4" />
 
-                  <Button style={{ backgroundColor: '#2B3035', border: 'none' }} type="submit" className="w-100 mb-4">
-                    Registruj se
-                  </Button>
+                  <button type="submit" className="btn-dark-custom w-100 mb-4 py-2">
+                    KREIRAJ NALOG
+                  </button>
 
                   <div className="text-center">
-                    <p>Već imate nalog? <a href="/login" style={{ color: '#2B3035', fontWeight: 'bold' }}>Prijavi se</a></p>
+                    <p className="small">Već imate nalog? <a href="/login" className="fw-bold" style={{ color: '#2B3035' }}>Prijavi se</a></p>
                   </div>
-                </MDBCardBody>
-              </MDBCard>
-            </MDBCol>
-          </MDBRow>
-        </MDBContainer>
-      </form>
+                </form>
+              </MDBCardBody>
+            </MDBCard>
+          </MDBCol>
+        </MDBRow>
+      </MDBContainer>
       <ToastContainer position="top-right" autoClose={3000} />
-    </>
+    </div>
   );
 }
 

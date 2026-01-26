@@ -1,11 +1,8 @@
 ﻿using backend.Models;
 using backend.DTOs;
-using backend.Repository;
-using backend.Services;
+using backend.Services.IServices; // BITNO
 using Microsoft.AspNetCore.Mvc;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace backend.Controllers
@@ -14,14 +11,12 @@ namespace backend.Controllers
     [ApiController]
     public class TaskController : ControllerBase
     {
-        private readonly ITaskRepository _taskRepo;
-        private readonly RedisService _redisService;
-        private readonly UserService _userService;
+        private readonly ITaskService _taskService;
+        private readonly IUserService _userService; // Koristimo interfejs da se poklopi sa Program.cs
 
-        public TaskController(ITaskRepository taskRepo, RedisService redisService, UserService userService)
+        public TaskController(ITaskService taskService, IUserService userService)
         {
-            _taskRepo = taskRepo;
-            _redisService = redisService;
+            _taskService = taskService;
             _userService = userService;
         }
 
@@ -30,27 +25,11 @@ namespace backend.Controllers
         {
             try
             {
-                var jwt = Request.Cookies["jwt"];
-                if (string.IsNullOrEmpty(jwt)) return Unauthorized("Niste prijavljeni.");
-
-                var user = await _userService.GetUser(jwt);
-
-                var task = new TodoTask
-                {
-                    UserId = user.Id,
-                    Title = taskDto.Title,
-                    Description = taskDto.Description,
-                    CreatedAt = DateTime.UtcNow,
-                    IsCompleted = false
-                };
-
-                await _taskRepo.Create(task);
+                var user = await GetUserFromCookie();
+                var task = await _taskService.AddTask(user.Id, taskDto.Title, taskDto.Description);
                 return Ok(task);
             }
-            catch (Exception e)
-            {
-                return BadRequest(new { message = e.Message });
-            }
+            catch (Exception e) { return BadRequest(new { message = e.Message }); }
         }
 
         [HttpGet("MyTasks")]
@@ -58,21 +37,11 @@ namespace backend.Controllers
         {
             try
             {
-                var jwt = Request.Cookies["jwt"];
-                if (string.IsNullOrEmpty(jwt)) return Unauthorized();
-
-                var user = await _userService.GetUser(jwt);
-
-                // Uzimamo samo zadatke koji NISU završeni za prikaz u listi
-                var tasks = await _taskRepo.GetByUserId(user.Id);
-                var activeTasks = tasks.Where(t => !t.IsCompleted).ToList();
-
+                var user = await GetUserFromCookie();
+                var activeTasks = await _taskService.GetActiveTasks(user.Id);
                 return Ok(activeTasks);
             }
-            catch (Exception e)
-            {
-                return Unauthorized();
-            }
+            catch (Exception) { return Unauthorized(); }
         }
 
         [HttpPost("Complete/{taskId}")]
@@ -80,27 +49,11 @@ namespace backend.Controllers
         {
             try
             {
-                var jwt = Request.Cookies["jwt"];
-                if (string.IsNullOrEmpty(jwt)) return Unauthorized();
-
-                var user = await _userService.GetUser(jwt);
-
-                var task = await _taskRepo.GetById(user.Id, taskId);
-                if (task == null) return NotFound("Zadatak nije pronađen.");
-
-                // IZMENA: Umesto Delete, radimo Update statusa
-                task.IsCompleted = true;
-                await _taskRepo.Create(task); // Cassandra Mapping Create radi i Upsert (Update)
-
-                // Dodeli poene u Redis
-                await _redisService.IncrementScore(user.Username!, 10);
-
+                var user = await GetUserFromCookie();
+                await _taskService.CompleteTask(user.Id, taskId, user.Username!);
                 return Ok(new { message = "Zadatak završen, dobili ste 10 poena!", points = 10 });
             }
-            catch (Exception e)
-            {
-                return BadRequest(new { message = e.Message });
-            }
+            catch (Exception e) { return BadRequest(new { message = e.Message }); }
         }
 
         [HttpGet("Leaderboard")]
@@ -108,44 +61,30 @@ namespace backend.Controllers
         {
             try
             {
-                var topUsers = await _redisService.GetTopUsers(10);
+                var topUsers = await _taskService.GetLeaderboard();
                 return Ok(topUsers);
             }
-            catch (Exception e)
-            {
-                return BadRequest(new { message = "Nije moguće učitati rang listu." });
-            }
+            catch (Exception) { return BadRequest(new { message = "Greška pri učitavanju." }); }
         }
 
-        // NOVO: Endpoint za podatke o produktivnosti (Dijagram)
         [HttpGet("ProductivityData")]
         public async Task<IActionResult> GetProductivityData()
         {
             try
             {
-                var jwt = Request.Cookies["jwt"];
-                if (string.IsNullOrEmpty(jwt)) return Unauthorized();
-
-                var user = await _userService.GetUser(jwt);
-                var allTasks = await _taskRepo.GetByUserId(user.Id);
-
-                // Grupišemo završene zadatke po datumu
-                var chartData = allTasks
-                    .Where(t => t.IsCompleted)
-                    .GroupBy(t => t.CreatedAt.ToString("yyyy-MM-dd"))
-                    .Select(g => new {
-                        day = g.Key,
-                        count = g.Count()
-                    })
-                    .OrderBy(x => x.day)
-                    .ToList();
-
-                return Ok(chartData);
+                var user = await GetUserFromCookie();
+                var data = await _taskService.GetProductivityData(user.Id);
+                return Ok(data);
             }
-            catch (Exception e)
-            {
-                return BadRequest(new { message = "Greška pri obradi podataka za dijagram." });
-            }
+            catch (Exception) { return BadRequest(new { message = "Greška pri učitavanju dijagrama." }); }
+        }
+
+        // Pomoćna metoda
+        private async Task<User> GetUserFromCookie()
+        {
+            var jwt = Request.Cookies["jwt"];
+            if (string.IsNullOrEmpty(jwt)) throw new Exception("Unauthorized");
+            return await _userService.GetUser(jwt);
         }
     }
 }

@@ -1,0 +1,93 @@
+.container1 {
+  max-width: 500px;
+  width: 90%;
+  margin: 100px auto;
+  padding: 2.5rem;
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Stil za Naslov i Liniju ispod */
+.header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  margin-bottom: 30px;
+}
+
+.header .text {
+  color: #2B3035;
+  font-size: 32px;
+  font-weight: 700;
+}
+
+.header .underline {
+  width: 60px;
+  height: 5px;
+  background: #2B3035;
+  border-radius: 6px;
+}
+
+.inputs {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Stil za inpute unutar grupa */
+.input-group-custom {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.input-group-custom input {
+  width: 100%;
+  height: 50px;
+  background: #f0f0f0;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 0 15px;
+  font-size: 16px;
+  outline: none;
+  transition: 0.3s;
+}
+
+.input-group-custom input:focus {
+  border-color: #2B3035;
+  background: #fff;
+}
+
+.sign-in {
+  width: 100%;
+  height: 50px;
+  background-color: #2B3035;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  margin-top: 20px;
+  font-weight: bold;
+  font-size: 16px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.sign-in:hover {
+  background-color: #40464d;
+  transform: translateY(-2px);
+}
+
+.btn-delete {
+  background-color: #d9534f !important; /* Bootstrap Danger crvena */
+}
+
+.btn-delete:hover {
+  background-color: #c9302c !important;
+}

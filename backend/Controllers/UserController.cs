@@ -1,8 +1,11 @@
-﻿using backend.Helpers;
-using backend.Services;
+﻿using backend.Models;
 using backend.DTOs;
-using backend.Models;
+using backend.Services.IServices;
+using backend.Services;
 using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace backend.Controllers
 {
@@ -10,34 +13,32 @@ namespace backend.Controllers
     [ApiController]
     public class UserController : ControllerBase
     {
-        private readonly UserService _userService;
+        private readonly IUserService _userService;
+        private readonly RedisService _redisService;
 
-        public UserController(UserService userService)
+        public UserController(IUserService userService, RedisService redisService)
         {
             _userService = userService;
+            _redisService = redisService;
         }
 
         [HttpPost("Register")]
-        public async Task<IActionResult> Register([FromBody] UserRegisterDTO user)
+        public async Task<IActionResult> Register([FromBody] UserRegisterDTO userDto)
         {
             try
             {
-                var result = await _userService.Register(user);
-                return Created("success", result);
+                var user = await _userService.Register(userDto);
+                return Created("success", user);
             }
-            catch (Exception e)
-            {
-                return BadRequest(e.Message);
-            }
+            catch (Exception e) { return BadRequest(new { message = e.Message }); }
         }
 
         [HttpPost("Login")]
-        public async Task<IActionResult> Login([FromBody] UserLoginDTO user)
+        public async Task<IActionResult> Login([FromBody] UserLoginDTO loginDto)
         {
             try
             {
-                var jwt = await _userService.Login(user.Email!, user.Password!);
-
+                var jwt = await _userService.Login(loginDto.Email!, loginDto.Password!);
                 Response.Cookies.Append("jwt", jwt, new CookieOptions
                 {
                     HttpOnly = true,
@@ -45,13 +46,9 @@ namespace backend.Controllers
                     SameSite = SameSiteMode.None,
                     MaxAge = TimeSpan.FromDays(1)
                 });
-
                 return Ok(new { message = "success" });
             }
-            catch (Exception e)
-            {
-                return BadRequest(e.Message);
-            }
+            catch (Exception e) { return BadRequest(new { message = e.Message }); }
         }
 
         [HttpGet("GetUser")]
@@ -60,59 +57,45 @@ namespace backend.Controllers
             try
             {
                 var jwt = Request.Cookies["jwt"];
-                var user = await _userService.GetUser(jwt!);
+                if (string.IsNullOrEmpty(jwt)) return Unauthorized();
+                var user = await _userService.GetUser(jwt);
                 return Ok(user);
             }
-            catch
-            {
-                return Unauthorized();
-            }
+            catch { return Unauthorized(); }
         }
 
         [HttpPost("Logout")]
         public IActionResult Logout()
         {
-            Response.Cookies.Delete("jwt", new CookieOptions
-            {
-                SameSite = SameSiteMode.None,
-                Secure = true,
-                HttpOnly = true
-            });
-
+            Response.Cookies.Delete("jwt", new CookieOptions { HttpOnly = true, Secure = true, SameSite = SameSiteMode.None });
             return Ok(new { message = "success" });
         }
 
+        // VRACENO NA STARO IME: Frontend traži "/api/User/Edit"
         [HttpPut("Edit")]
-        public async Task<IActionResult> Edit([FromBody] UserUpdateDTO user)
+        public async Task<IActionResult> Edit([FromBody] UserUpdateDTO userDto)
         {
             try
             {
-                await _userService.UpdateProfile(user);
-                return Ok("Profile Edited");
+                await _userService.UpdateProfile(userDto);
+                return Ok(new { message = "Profile Edited" });
             }
-            catch (Exception e)
-            {
-                return BadRequest(e.Message);
-            }
+            catch (Exception e) { return BadRequest(new { message = e.Message }); }
         }
 
-        // --- NOVE METODE ZA ADMINA ---
-
+        // VRACENO NA STARO IME: "/api/User/GiveAdmin"
         [HttpPut("GiveAdmin")]
         public async Task<IActionResult> GiveAdmin([FromQuery] string username)
         {
             try
             {
-                // Pozivamo servis koji smo dogovorili da napraviš
                 await _userService.MakeUserAdmin(username);
                 return Ok(new { message = $"Korisnik {username} je postao admin." });
             }
-            catch (Exception e)
-            {
-                return BadRequest(e.Message);
-            }
+            catch (Exception e) { return BadRequest(new { message = e.Message }); }
         }
 
+        // VRACENO NA STARO IME: "/api/User/Delete"
         [HttpDelete("Delete")]
         public async Task<IActionResult> DeleteUser([FromQuery] string username)
         {
@@ -121,32 +104,20 @@ namespace backend.Controllers
                 await _userService.DeleteUser(username);
                 return Ok(new { message = "Korisnik uspešno obrisan." });
             }
-            catch (Exception e)
-            {
-                return BadRequest(e.Message);
-            }
+            catch (Exception e) { return BadRequest(new { message = e.Message }); }
         }
+
+        // VRACENO NA STARO IME: "/api/User/Scoreboard"
         [HttpGet("Scoreboard")]
-        public async Task<IActionResult> GetScoreboard([FromServices] RedisService redisService)
+        public async Task<IActionResult> GetScoreboard()
         {
             try
             {
-                // Pozivamo tvoju postojeću metodu GetTopUsers
-                var topUsers = await redisService.GetTopUsers(10);
-
-                // Mapiramo KeyValuePair u jednostavan objekat koji React očekuje
-                var result = topUsers.Select(x => new
-                {
-                    username = x.Key,
-                    points = x.Value
-                });
-
+                var topUsers = await _redisService.GetTopUsers(10);
+                var result = topUsers.Select(x => new { username = x.Key, points = x.Value });
                 return Ok(result);
             }
-            catch (Exception e)
-            {
-                return BadRequest(e.Message);
-            }
+            catch (Exception e) { return BadRequest(new { message = e.Message }); }
         }
     }
 }

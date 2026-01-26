@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
 import Axios from 'axios';
 import { toast, ToastContainer } from 'react-toastify';
+import '../styles/Log-In.css';
 
 function DeleteUser() {
   const [usernameToDelete, setUsernameToDelete] = useState('');
 
   function submit(e) {
     e.preventDefault();
-    
-    // Ključna promena: Pretvaramo u mala slova i brišemo prazna mesta
     const cleanUsername = usernameToDelete.toLowerCase().trim();
     const uri = `https://localhost:7248/api/User/Delete?username=${cleanUsername}`;
     
@@ -18,37 +17,32 @@ function DeleteUser() {
         setUsernameToDelete('');
       })
       .catch(err => {
-        // Izvlačimo tačnu poruku sa backenda (npr. "Korisnik nije pronađen")
-        const errorMessage = err.response?.data || "Greška ili nemate administratorska prava.";
-        toast.error(errorMessage);
-        console.error("Delete error:", err);
+        toast.error(err.response?.data || "Greška pri brisanju.");
       });
   }
 
   return (
-    <div className='container1' style={{marginTop: '100px'}}>
-      <form onSubmit={submit}>
+    <div className='container1'>
+      <form onSubmit={submit} className='w-100'>
         <div className='header'>
-          <div className='text'>Obriši korisnika (Admin)</div>
+          <div className='text'>Obriši korisnika</div>
           <div className='underline'></div>
         </div>
-        <div className='inputs' style={{marginTop: '20px'}}>
-          <div className='input'>
+        
+        <div className='inputs'>
+          <div className='input-group-custom'>
             <input 
               type='text' 
-              placeholder='Unesite korisničko ime (npr. mare)' 
+              placeholder='Unesite korisničko ime...' 
               value={usernameToDelete} 
               onChange={(e) => setUsernameToDelete(e.target.value)} 
               required 
             />
           </div>
         </div>
-        <button 
-            type='submit' 
-            className='sign-in' 
-            style={{backgroundColor: '#d9534f', border: 'none', cursor: 'pointer'}}
-        >
-            Obriši trajno
+
+        <button type='submit' className='sign-in btn-delete'>
+            OBRIŠI TRAJNO
         </button>
       </form>
       <ToastContainer position="top-right" autoClose={3000} />
