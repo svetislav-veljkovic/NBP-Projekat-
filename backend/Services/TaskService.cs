@@ -44,10 +44,14 @@ namespace backend.Services
             var task = await _taskRepo.GetById(userId, taskId);
             if (task == null) throw new Exception("Zadatak nije pronađen.");
 
+            // 1. Markiramo kao završeno
             task.IsCompleted = true;
-            await _taskRepo.Create(task); // Update u Cassandri
 
-            // Redis logika
+            // 2. Čuvamo u Cassandri (ovo služi za tvoje dijagrame produktivnosti kasnije)
+            await _taskRepo.Create(task);
+
+            // 3. REDIS LOGIKA: Ovde se dešava Weekly TTL magija
+            // Koristimo username za Scoreboard jer je on vidljiv na rang listi
             await _redisService.IncrementScore(username, 10);
         }
 

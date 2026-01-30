@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
-import Axios from 'axios';
+import Axios from '../api';
 import '../styles/Log-In.css'; 
 
 function AddAdminPage() {

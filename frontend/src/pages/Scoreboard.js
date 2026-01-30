@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { MDBContainer, MDBCard, MDBCardBody, MDBTable, MDBTableHead, MDBTableBody } from 'mdb-react-ui-kit';
-import Axios from 'axios';
+import Axios from '../api';
 import '../styles/Scoreboard.css';
 import '../styles/App.css'; // Zbog .header i .custom-card
 

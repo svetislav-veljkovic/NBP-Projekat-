@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { MDBContainer, MDBRow, MDBCol, MDBCard, MDBCardBody, MDBInput } from 'mdb-react-ui-kit';
 import { toast, ToastContainer } from 'react-toastify';
-import Axios from 'axios';
+import Axios from '../api';
 import '../styles/Register.css';
 import '../styles/App.css'; // Dodajemo i App.css zbog .header klase
 import { Button } from 'react-bootstrap';

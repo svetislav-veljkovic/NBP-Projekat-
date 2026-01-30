@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
-import Axios from 'axios';
+import Axios from '../api';
 import { MDBCard, MDBCardBody } from 'mdb-react-ui-kit';
 import '../styles/App.css'; // Koristimo globalni CSS
 

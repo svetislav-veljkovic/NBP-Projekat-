@@ -1,9 +1,10 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Container, Navbar, Nav, NavDropdown } from 'react-bootstrap';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { IonIcon } from '@ionic/react'; 
 import { person, list, shieldCheckmark, statsChart } from 'ionicons/icons';
 import '../styles/App.css'; 
+import API, { setResetTimerCallback } from '../api'; // PROMENJENO: usklađeno sa api.js
 
 function OurNavbar({ userId, username }) {
   const [user, setUser] = useState({
@@ -13,44 +14,57 @@ function OurNavbar({ userId, username }) {
     isAdmin: false
   });
 
-  const baseUrl = "https://localhost:7248/api/User";
+  const logoutTimerRef = useRef(null);
+
+  // FUNKCIJA ZA RESETOVANJE TAJMERA
+  const resetTimer = useCallback(() => {
+    if (logoutTimerRef.current) {
+      clearTimeout(logoutTimerRef.current);
+    }
+
+    if (userId && userId !== -1) {
+      // Svaki put kad se pozove, pokreće novih 60s (Sliding Expiration)
+      
+      logoutTimerRef.current = setTimeout(() => {
+        console.warn("Sesija je istekla zbog neaktivnosti na frontendu.");
+        window.location.href = '/login';
+      }, 60000); 
+    }
+  }, [userId]);
 
   useEffect(() => {
+    // PROMENJENO: Koristimo tačan naziv funkcije iz api.js
+    setResetTimerCallback(resetTimer);
+
     const fetchUserData = async () => {
       if (userId && userId !== -1) { 
         try {
-          const response = await fetch(`${baseUrl}/GetUser`, {
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-            mode: 'cors',
+          const response = await API.get('/User/GetUser');
+          setUser({
+            ...response.data,
+            isAdmin: response.data.isAdmin || response.data.isadmin || false
           });
-
-          if (response.ok) {
-            const userData = await response.json();
-            setUser({
-              ...userData,
-              isAdmin: userData.isAdmin || userData.isadmin || false
-            });
-          }
         } catch (error) {
-          console.error('Greška pri dohvatanju profila:', error);
+          console.error('Greška pri dohvatanju profila');
         }
       }
     };
 
     fetchUserData();
-  }, [userId]);
+
+    return () => {
+      if (logoutTimerRef.current) clearTimeout(logoutTimerRef.current);
+      // PROMENJENO: Čistimo callback
+      setResetTimerCallback(null); 
+    };
+  }, [userId, resetTimer]);
 
   const logout = async () => {
     try {
-      await fetch(`${baseUrl}/Logout`, {
-        method: 'POST',
-        credentials: 'include',
-        mode: 'cors',
-      });
+      await API.post('/User/Logout');
       window.location.href = '/login';
     } catch (error) {
-      console.error('Logout error:', error);
+      window.location.href = '/login';
     }
   };
 
@@ -66,13 +80,10 @@ function OurNavbar({ userId, username }) {
                 <Nav.Link href="/tasks">
                   <IonIcon icon={list} className="me-1" /> Moji Zadaci
                 </Nav.Link>
-                
                 <Nav.Link href="/productivity">
                   <IonIcon icon={statsChart} className="me-1" /> Produktivnost
                 </Nav.Link>
-
                 <Nav.Link href="/scoreboard">Rang Lista</Nav.Link>
-
                 {user.isAdmin && (
                   <NavDropdown 
                     title={<span><IonIcon icon={shieldCheckmark} className="me-1 text-warning" />Admin</span>} 
@@ -85,7 +96,6 @@ function OurNavbar({ userId, username }) {
               </>
             )}
           </Nav>
-          
           <Nav className="align-items-center">
             {(!userId || userId === -1) ? (
               <>
@@ -97,7 +107,6 @@ function OurNavbar({ userId, username }) {
                 <span className={`me-3 d-none d-lg-inline ${user.isAdmin ? 'text-warning fw-bold' : 'text-white'}`}>
                   {user.username || 'Korisnik'} {user.isAdmin && "(Admin)"}
                 </span>
-                
                 <NavDropdown 
                   title={<IonIcon icon={person} size="large" className="text-white" />} 
                   id="profile-dropdown" 

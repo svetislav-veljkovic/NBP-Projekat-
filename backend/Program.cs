@@ -4,10 +4,14 @@ using backend.Repository;
 using backend.Helpers;
 using StackExchange.Redis;
 using System.Text.Json;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // --- 1. INFRASTRUKTURA ---
+// Redis postavljamo kao Singleton jer je ConnectionMultiplexer dizajniran da se deli
 builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
     ConnectionMultiplexer.Connect(builder.Configuration.GetConnectionString("Redis") ?? "localhost:6379"));
 
@@ -18,15 +22,27 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ITaskRepository, TaskRepository>();
 
 // --- 3. SERVISI ---
-// OVDE JE BIO PROBLEM: Sada registrujemo samo JEDNOM po principu Interfejs -> Klasa
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ITaskService, TaskService>();
-
-builder.Services.AddScoped<RedisService>();
+builder.Services.AddScoped<RedisService>(); // Mora biti Scoped jer kontroleri zavise od njega u svakom requestu
 builder.Services.AddSingleton<JwtService>();
 builder.Services.AddHttpContextAccessor();
 
-// --- 4. KONTROLERI ---
+// --- 4. AUTHENTICATION (Ovo ti je falilo da bi UseAuthentication radilo) ---
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("OvoJeSadaTvojNoviSigurniKljucZaTodoAplikaciju2024!")),
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            ClockSkew = TimeSpan.Zero
+        };
+    });
+
+// --- 5. KONTROLERI ---
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
@@ -37,7 +53,7 @@ builder.Services.AddControllers()
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// --- 5. CORS ---
+// --- 6. CORS ---
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp",
@@ -52,7 +68,7 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// --- 6. MIDDLEWARE ---
+// --- 7. MIDDLEWARE ---
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -60,8 +76,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseRouting();
-app.UseCors("AllowReactApp"); // Uvek pre Auth
+app.UseCors("AllowReactApp");
 
+// Redosled je bitan: Authentication pa Authorization
 app.UseAuthentication();
 app.UseAuthorization();
 

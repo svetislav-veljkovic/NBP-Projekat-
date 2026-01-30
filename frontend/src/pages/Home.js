@@ -3,7 +3,7 @@ import '../styles/App.css';
 import background from '../assets/background.jpg';
 import { Typewriter, Cursor } from 'react-simple-typewriter';
 import { MDBContainer, MDBRow, MDBCol, MDBCard, MDBCardBody, MDBIcon } from 'mdb-react-ui-kit';
-import Axios from 'axios';
+import Axios from '../api';
 
 function Home() {
   const [bestUsers, setBestUsers] = useState([]);

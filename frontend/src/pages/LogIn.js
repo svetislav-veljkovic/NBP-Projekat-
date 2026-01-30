@@ -3,13 +3,13 @@ import { useState } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import { mail, lockClosed } from 'ionicons/icons';
 import '../styles/Log-In.css';
-import '../styles/App.css'; // Dodajemo zbog .input-group-custom
+import '../styles/App.css'; 
 import { useNavigate } from 'react-router-dom';
+import API from '../api'; // Uvozimo tvoju centralnu Axios instancu
 
 function LogIn(props) {
   const { setUserId } = props;
   const navigate = useNavigate();
-  const url = "https://localhost:7248/api/User/Login";
 
   const [data, setData] = useState({
     email: "",
@@ -19,31 +19,34 @@ function LogIn(props) {
   async function submit(e) {
     e.preventDefault();
     try {
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        credentials: 'include', 
-        body: JSON.stringify({
-          email: data.email,
-          password: data.password
-        }),
-        mode: "cors"
+      /** * Koristimo API.post. 
+       * 1. Putanja je samo '/User/Login' jer je baseURL već u api.js
+       * 2. Ne treba JSON.stringify, Axios to radi sam
+       * 3. withCredentials: true se dodaje automatski iz api.js
+       */
+      const response = await API.post('/User/Login', {
+        email: data.email,
+        password: data.password
       });
 
-      if (!response.ok) {
-        toast.error("Neuspešna prijava: Proverite podatke.");
-      } else {
-        toast.success("Uspešan login!");
-        if (setUserId) {
-          setUserId(Math.random()); 
-        }
-        setTimeout(() => navigate('/'), 800);
+      // Ako dođe do ovde, status je 200 OK
+      toast.success("Uspešan login!");
+      
+      if (setUserId) {
+        setUserId(Math.random()); 
       }
+      
+      setTimeout(() => navigate('/'), 800);
+
     } catch (error) {
-      toast.error("Server nije dostupan.");
+      // Axios greške hvata u catch bloku
+      if (error.response) {
+        // Server je odgovorio sa greškom (npr. 401, 400)
+        toast.error(error.response.data || "Neuspešna prijava: Proverite podatke.");
+      } else {
+        // Server nije dostupan ili je mreža u prekidu
+        toast.error("Server nije dostupan.");
+      }
     }
   }
 
@@ -63,7 +66,6 @@ function LogIn(props) {
         </div>
 
         <div className='inputs'>
-          {/* Email Polje */}
           <div className='input-group-custom'>
             <div className="d-flex align-items-center bg-light px-3 rounded-3" style={{border: '1px solid #ddd'}}>
               <IonIcon icon={mail} style={{fontSize: '20px', color: '#555'}} />
@@ -79,7 +81,6 @@ function LogIn(props) {
             </div>
           </div>
 
-          {/* Password Polje */}
           <div className='input-group-custom'>
             <div className="d-flex align-items-center bg-light px-3 rounded-3" style={{border: '1px solid #ddd'}}>
               <IonIcon icon={lockClosed} style={{fontSize: '20px', color: '#555'}} />

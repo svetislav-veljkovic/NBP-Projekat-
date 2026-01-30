@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import { MDBContainer, MDBRow, MDBCol, MDBCard, MDBCardBody, MDBInput } from 'mdb-react-ui-kit';
 import { useNavigate } from 'react-router-dom';
-import Axios from 'axios';
+import Axios from '../api';
 import '../styles/Register.css';
 import '../styles/App.css'; // Dodajemo zbog btn-dark-custom i ostalih klasa
 

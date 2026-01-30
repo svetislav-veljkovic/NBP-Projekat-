@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { MDBContainer, MDBCard, MDBCardBody, MDBInput, MDBRow, MDBCol, MDBIcon } from 'mdb-react-ui-kit';
 import { Button } from 'react-bootstrap';
-import Axios from 'axios';
+import Axios from '../api';
 import { toast, ToastContainer } from 'react-toastify';
 import '../styles/Tasks.css';
 import '../styles/App.css'; // Zbog globalnih klasa

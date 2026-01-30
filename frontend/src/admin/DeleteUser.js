@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import Axios from 'axios';
+import Axios from '../api';
 import { toast, ToastContainer } from 'react-toastify';
 import '../styles/Log-In.css';
 

@@ -1,9 +1,10 @@
 import { ToastContainer, toast } from 'react-toastify';
 import { MDBCol, MDBContainer, MDBRow, MDBCard, MDBCardText, MDBCardBody, MDBCardImage, MDBTypography } from 'mdb-react-ui-kit';
 import '../styles/Profile.css';
-import '../styles/App.css'; // Dodajemo zbog custom-card klase
+import '../styles/App.css'; 
 import React, { useEffect, useState } from 'react';
 import profileIcon from '../assets/profile-icon.png';
+import API from '../api'; // Uvozimo tvoj axios instance
 
 function Profile() {
   const [user, setUser] = useState({
@@ -14,29 +15,18 @@ function Profile() {
     profilePicture: ''
   });
 
-  const baseUrl = "https://localhost:7248/api/User";
-
   useEffect(() => {
     const fetchMyProfile = async () => {
       try {
-        const response = await fetch(`${baseUrl}/GetUser`, {
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-          },
-          credentials: 'include',
-          mode: 'cors',
-        });
-
-        if (!response.ok) {
-          throw new Error("Niste ulogovani.");
-        }
-
-        const userData = await response.json();
-        setUser(userData);
+        // Koristimo API.get - putanja je skraćena, a withCredentials je automatski tu
+        const response = await API.get('/User/GetUser');
+        
+        // Axios podatke pakuje u .data objekat
+        setUser(response.data);
       } catch (error) {
-        console.error('Greška:', error);
-        toast.error("Sesija je istekla. Prijavite se ponovo.");
+        console.error('Greška pri dohvatanju profila:', error);
+        // Ovde ne moraš ručno da radiš redirect, 
+        // jer će tvoj api.js presretač to uraditi čim vidi 401 grešku.
       }
     };
 
@@ -50,18 +40,20 @@ function Profile() {
           <MDBCol lg="9" xl="8">
             <MDBCard className="custom-card overflow-hidden">
               <MDBRow className="g-0">
-                {/* Leva strana - Tamna pozadina sa avatarom */}
+                {/* Leva strana */}
                 <MDBCol md="4" className="gradient-custom-dark text-center text-white d-flex flex-column align-items-center justify-content-center p-4">
                   <MDBCardImage 
                     src={profileIcon}
                     alt="Avatar" 
                     className="mb-3 profile-avatar"
                   />
-                  <MDBTypography tag="h4" className="fw-bold">{user.name} {user.lastName}</MDBTypography>
+                  <MDBTypography tag="h4" className="fw-bold">
+                    {user.name} {user.lastName}
+                  </MDBTypography>
                   <MDBCardText className="opacity-75">Korisnik sistema</MDBCardText>
                 </MDBCol>
 
-                {/* Desna strana - Detalji */}
+                {/* Desna strana */}
                 <MDBCol md="8">
                   <MDBCardBody className="p-4 p-lg-5">
                     <div className="d-flex align-items-center mb-4">
