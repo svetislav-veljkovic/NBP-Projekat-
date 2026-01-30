@@ -1,25 +1,23 @@
 import React, { useState } from 'react';
-import Axios from '../api';
+import API from '../api';
 import { toast, ToastContainer } from 'react-toastify';
 import '../styles/Log-In.css';
 
 function DeleteUser() {
   const [usernameToDelete, setUsernameToDelete] = useState('');
 
-  function submit(e) {
+  const submit = async (e) => {
     e.preventDefault();
     const cleanUsername = usernameToDelete.toLowerCase().trim();
-    const uri = `https://localhost:7248/api/User/Delete?username=${cleanUsername}`;
     
-    Axios.delete(uri, { withCredentials: true })
-      .then(() => {
-        toast.success(`Korisnik "${cleanUsername}" je uspešno obrisan.`);
-        setUsernameToDelete('');
-      })
-      .catch(err => {
-        toast.error(err.response?.data || "Greška pri brisanju.");
-      });
-  }
+    try {
+      await API.delete(`/User/Delete?username=${cleanUsername}`);
+      toast.success(`Korisnik "${cleanUsername}" je uspešno obrisan.`);
+      setUsernameToDelete('');
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Greška pri brisanju.");
+    }
+  };
 
   return (
     <div className='container1'>
@@ -33,7 +31,7 @@ function DeleteUser() {
           <div className='input-group-custom'>
             <input 
               type='text' 
-              placeholder='Unesite korisničko ime...' 
+              placeholder='Korisničko ime...' 
               value={usernameToDelete} 
               onChange={(e) => setUsernameToDelete(e.target.value)} 
               required 
@@ -41,7 +39,7 @@ function DeleteUser() {
           </div>
         </div>
 
-        <button type='submit' className='sign-in btn-delete'>
+        <button type='submit' className='sign-in' style={{backgroundColor: '#dc3545'}}>
             OBRIŠI TRAJNO
         </button>
       </form>

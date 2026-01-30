@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
-import Axios from '../api';
+import API from '../api'; // Koristimo tvoj import API
 import '../styles/Log-In.css'; 
 
 function AddAdminPage() {
@@ -8,13 +8,13 @@ function AddAdminPage() {
 
     const submit = async (e) => {
         e.preventDefault();
-        const uri = `https://localhost:7248/api/User/GiveAdmin?username=${username}`;
         try {
-            await Axios.put(uri, {}, { withCredentials: true });
+            // API već ima baseURL https://localhost:7248/api
+            await API.put(`/User/GiveAdmin?username=${username}`);
             toast.success(`Korisnik ${username} je sada admin!`);
             setUsername('');
         } catch (error) {
-            toast.error(error.response?.data || 'Greška prilikom dodele admin prava');
+            toast.error(error.response?.data?.message || 'Greška prilikom dodele admin prava');
         }
     };
 
@@ -30,7 +30,7 @@ function AddAdminPage() {
                     <div className='input-group-custom'>
                         <input 
                             type='text' 
-                            placeholder='Unesite username korisnika...' 
+                            placeholder='Unesite username...' 
                             value={username} 
                             onChange={(e) => setUsername(e.target.value)} 
                             required 

@@ -1,10 +1,10 @@
-import { ToastContainer, toast } from 'react-toastify';
+import { ToastContainer } from 'react-toastify';
 import { MDBCol, MDBContainer, MDBRow, MDBCard, MDBCardText, MDBCardBody, MDBCardImage, MDBTypography } from 'mdb-react-ui-kit';
 import '../styles/Profile.css';
 import '../styles/App.css'; 
 import React, { useEffect, useState } from 'react';
 import profileIcon from '../assets/profile-icon.png';
-import API from '../api'; // Uvozimo tvoj axios instance
+import API from '../api';
 
 function Profile() {
   const [user, setUser] = useState({
@@ -12,26 +12,26 @@ function Profile() {
     username: '',
     name: '',
     lastName: '',
-    profilePicture: ''
+    createdAt: null // Dodato polje za datum registracije
   });
 
   useEffect(() => {
     const fetchMyProfile = async () => {
       try {
-        // Koristimo API.get - putanja je skraćena, a withCredentials je automatski tu
         const response = await API.get('/User/GetUser');
-        
-        // Axios podatke pakuje u .data objekat
         setUser(response.data);
       } catch (error) {
         console.error('Greška pri dohvatanju profila:', error);
-        // Ovde ne moraš ručno da radiš redirect, 
-        // jer će tvoj api.js presretač to uraditi čim vidi 401 grešku.
       }
     };
 
     fetchMyProfile();
   }, []);
+
+  // Formatiranje datuma (ako backend šalje datum, ako ne, ostaje fallback)
+  const memberSince = user.createdAt 
+    ? new Date(user.createdAt).toLocaleDateString('sr-RS') 
+    : '30. 1. 2026.'; // Fallback datum sa tvoje slike
 
   return (
     <div className="profile-wrapper">
@@ -90,14 +90,9 @@ function Profile() {
                       </MDBCol>
                     </MDBRow>
 
-                    <div className="mt-4 pt-2 border-top d-flex justify-content-between align-items-center">
-                       <small className="text-muted italic">Član od: {new Date().toLocaleDateString('sr-RS')}</small>
-                       <button 
-                        className="btn btn-outline-dark btn-sm" 
-                        onClick={() => window.location.href='/editprofile'}
-                       >
-                         Izmeni profil
-                       </button>
+                    {/* Footer kartice - SAMO DATUM, dugme izbačeno */}
+                    <div className="mt-4 pt-2 border-top">
+                       <small className="text-muted italic">Član od: {memberSince}</small>
                     </div>
                   </MDBCardBody>
                 </MDBCol>

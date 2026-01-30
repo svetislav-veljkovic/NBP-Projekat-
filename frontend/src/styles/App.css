@@ -5,24 +5,34 @@ body {
   font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   background-color: #f8f9fa;
   color: #2b3035;
-  /* Sprečavamo horizontalni skrol ako neka animacija "pobegne" */
   overflow-x: hidden; 
 }
 
-/* POPRAVLJENO: Sadržaj sada zauzima tačno preostali prostor ekrana */
+/* POPRAVLJENO: Centriranje sadržaja. 
+   Koristimo min-height da zauzme ceo ekran minus navbar.
+*/
 .main-content-wrapper {
-  padding-top: 80px; /* Visina fiksnog navbara */
-  /* Oduzimamo visinu navbara od ukupne visine ekrana */
-  min-height: calc(100vh - 80px); 
+  padding-top: 80px; /* Visina navbara */
+  min-height: 100vh; 
   display: flex;
   flex-direction: column;
+  /* Ovo centrirasve unutar wrappera na sredinu ekrana */
+  justify-content: center; 
+  align-items: center;
+}
+
+/* Specijalno pravilo: Ako je unutra Home stranica (.background), 
+   nemoj je centrirati vertikalno na sredinu ekrana da ne bi bilo previše prazno gore.
+*/
+.main-content-wrapper:has(.background) {
+  justify-content: flex-start;
 }
 
 /* --- NAVBAR STILIZACIJA --- */
 .navbar {
   box-shadow: 0 2px 10px rgba(0,0,0,0.2);
   padding: 0.8rem 1rem !important;
-  height: 80px; /* Fiksna visina da bi se calc podudarao */
+  height: 80px;
 }
 
 .navbar-brand {
@@ -42,13 +52,13 @@ body {
   color: #ffc107 !important;
 }
 
-/* --- HOME STRANICA (Hero sekcija) --- */
+/* --- HOME STRANICA --- */
 .background {
   position: relative;
   text-align: center;
   overflow: hidden;
-  /* Hero sekcija se sada računa od dna navbara */
-  height: 60vh; 
+  height: 60vh;
+  width: 100vw; /* Da bi Hero sekcija bila preko celog ekrana */
 }
 
 .background-img {
@@ -66,17 +76,9 @@ body {
   width: 85%;
 }
 
-.animation-text h2 {
-  color: white;
-  font-size: 3.5rem;
-  font-weight: 700;
-  text-shadow: 2px 4px 8px rgba(0,0,0,0.6);
-}
-
-/* --- FORME I ZAJEDNIČKI ELEMENTI (Admin, Login) --- */
-/* POPRAVLJENO: Centriranje formi bez viška prostora */
+/* --- FORME (Admin, Login, Register) --- */
 .container1 {
-  margin: auto !important; /* Vertikalno centriranje unutar main-content-wrapper */
+  /* margin: auto uklonjen jer Flexbox na wrapperu sada radi centriranje */
   max-width: 500px;
   width: 90%;
   padding: 2.5rem;
@@ -86,6 +88,8 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
+  /* Dodajemo malo margine odozgo da ne bi baš dodirivalo navbar na malim ekranima */
+  margin: 20px 0; 
 }
 
 .header {
@@ -124,17 +128,6 @@ body {
   transition: all 0.3s ease;
 }
 
-.input-group-custom:focus-within {
-  border-color: #2B3035;
-  box-shadow: 0 0 8px rgba(0,0,0,0.1);
-}
-
-.input-group-custom ion-icon {
-  margin-right: 12px;
-  color: #2B3035;
-  font-size: 22px;
-}
-
 .input-group-custom input {
   background: transparent;
   border: none;
@@ -144,32 +137,30 @@ body {
   color: #333;
 }
 
-/* --- KARTICE (Za Taskove i Top Korisnike) --- */
-.custom-card {
-  background: white;
-  border-radius: 15px;
-  border: none;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.custom-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-}
-
 /* --- DUGMIĆI --- */
-.btn-dark-custom {
+/* Koristimo tvoju klasu .sign-in iz admin komponenti */
+.sign-in {
+  width: 100%;
   background-color: #2B3035;
   color: white;
   border-radius: 8px;
-  padding: 10px 25px;
+  padding: 12px;
   font-weight: 600;
   border: none;
   transition: 0.3s;
+  cursor: pointer;
+  text-transform: uppercase;
 }
 
-.btn-dark-custom:hover {
+.sign-in:hover {
   background-color: #40464d;
   transform: scale(1.02);
+}
+
+.btn-delete {
+  background-color: #dc3545 !important;
+}
+
+.btn-delete:hover {
+  background-color: #a71d2a !important;
 }

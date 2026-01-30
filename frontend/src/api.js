@@ -7,38 +7,33 @@ const API = axios.create({
 
 let resetTimerCallback = null;
 
-// Funkcija za registraciju callback-a iz Navbara
 export const setResetTimerCallback = (callback) => {
     resetTimerCallback = callback;
 };
 
-// 1. PRESRETAČ ZA ZAHTEVE (Request Interceptor)
-// Resetujemo tajmer čim korisnik POKUŠA nešto da uradi
+// 1. Request Interceptor
 API.interceptors.request.use(
     (config) => {
-        if (resetTimerCallback) {
-            resetTimerCallback();
-        }
+        if (resetTimerCallback) resetTimerCallback();
         return config;
     },
-    (error) => {
-        return Promise.reject(error);
-    }
+    (error) => Promise.reject(error)
 );
 
-// 2. PRESRETAČ ZA ODGOVORE (Response Interceptor)
-// Resetujemo tajmer i kada server uspešno ODGOVORI
+// 2. Response Interceptor
 API.interceptors.response.use(
     (response) => {
-        if (resetTimerCallback) {
-            resetTimerCallback();
-        }
+        if (resetTimerCallback) resetTimerCallback();
         return response;
     },
     (error) => {
-        // Ako je 401 (Unauthorized) i nismo već na login stranici
         if (error.response && error.response.status === 401) {
-            if (!window.location.pathname.includes('/login')) {
+            const path = window.location.pathname;
+            // Preusmeravaj na login SAMO ako korisnik pokuša da pristupi zaštićenim stranicama
+            // Ne preusmeravaj ako je na /, /login ili /register
+            const publicPaths = ['/', '/login', '/register'];
+            if (!publicPaths.includes(path)) {
+                console.warn("Sesija nevalidna, preusmeravanje...");
                 window.location.href = '/login';
             }
         }
