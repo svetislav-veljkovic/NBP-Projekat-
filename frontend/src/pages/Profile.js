@@ -12,12 +12,13 @@ function Profile() {
     username: '',
     name: '',
     lastName: '',
-    createdAt: null // Dodato polje za datum registracije
+    createdAt: null
   });
 
   useEffect(() => {
     const fetchMyProfile = async () => {
       try {
+        // API instanca već ima https://localhost:7248/api i withCredentials
         const response = await API.get('/User/GetUser');
         setUser(response.data);
       } catch (error) {
@@ -28,10 +29,10 @@ function Profile() {
     fetchMyProfile();
   }, []);
 
-  // Formatiranje datuma (ako backend šalje datum, ako ne, ostaje fallback)
+  // Formatiranje datuma - koristi datum sa servera ili današnji datum kao fallback
   const memberSince = user.createdAt 
     ? new Date(user.createdAt).toLocaleDateString('sr-RS') 
-    : '30. 1. 2026.'; // Fallback datum sa tvoje slike
+    : new Date().toLocaleDateString('sr-RS');
 
   return (
     <div className="profile-wrapper">
@@ -40,7 +41,7 @@ function Profile() {
           <MDBCol lg="9" xl="8">
             <MDBCard className="custom-card overflow-hidden">
               <MDBRow className="g-0">
-                {/* Leva strana */}
+                {/* Leva strana - Vizuelni identitet */}
                 <MDBCol md="4" className="gradient-custom-dark text-center text-white d-flex flex-column align-items-center justify-content-center p-4">
                   <MDBCardImage 
                     src={profileIcon}
@@ -48,12 +49,12 @@ function Profile() {
                     className="mb-3 profile-avatar"
                   />
                   <MDBTypography tag="h4" className="fw-bold">
-                    {user.name} {user.lastName}
+                    {user.name && user.lastName ? `${user.name} ${user.lastName}` : user.username}
                   </MDBTypography>
                   <MDBCardText className="opacity-75">Korisnik sistema</MDBCardText>
                 </MDBCol>
 
-                {/* Desna strana */}
+                {/* Desna strana - Podaci */}
                 <MDBCol md="8">
                   <MDBCardBody className="p-4 p-lg-5">
                     <div className="d-flex align-items-center mb-4">
@@ -66,7 +67,7 @@ function Profile() {
                     <MDBRow className="pt-1">
                       <MDBCol size="6" className="mb-4">
                         <MDBTypography tag="h6" className="fw-bold text-uppercase">Email</MDBTypography>
-                        <MDBCardText className="text-muted">{user.email}</MDBCardText>
+                        <MDBCardText className="text-muted">{user.email || 'Učitavanje...'}</MDBCardText>
                       </MDBCol>
                       <MDBCol size="6" className="mb-4">
                         <MDBTypography tag="h6" className="fw-bold text-uppercase">Username</MDBTypography>
@@ -90,7 +91,6 @@ function Profile() {
                       </MDBCol>
                     </MDBRow>
 
-                    {/* Footer kartice - SAMO DATUM, dugme izbačeno */}
                     <div className="mt-4 pt-2 border-top">
                        <small className="text-muted italic">Član od: {memberSince}</small>
                     </div>

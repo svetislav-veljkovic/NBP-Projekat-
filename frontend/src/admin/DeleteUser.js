@@ -9,13 +9,22 @@ function DeleteUser() {
   const submit = async (e) => {
     e.preventDefault();
     const cleanUsername = usernameToDelete.toLowerCase().trim();
+
+    // Dodata sigurnosna potvrda
+    if (!window.confirm(`Da li ste sigurni da želite trajno da obrišete korisnika "${cleanUsername}"? Ova akcija se ne može poništiti.`)) {
+      return;
+    }
     
     try {
+      // API instanca automatski šalje session cookie koji backend proverava za [Authorize(Roles = "Admin")]
       await API.delete(`/User/Delete?username=${cleanUsername}`);
+      
       toast.success(`Korisnik "${cleanUsername}" je uspešno obrisan.`);
       setUsernameToDelete('');
     } catch (err) {
-      toast.error(err.response?.data?.message || "Greška pri brisanju.");
+      // Provera da li server vraća specifičnu poruku o grešci
+      const errorMsg = err.response?.data || "Greška pri brisanju korisnika.";
+      toast.error(typeof errorMsg === 'string' ? errorMsg : "Neuspešna akcija.");
     }
   };
 
@@ -27,6 +36,10 @@ function DeleteUser() {
           <div className='underline'></div>
         </div>
         
+        <p className="text-center text-muted mt-3 px-4">
+          Unesite tačno korisničko ime osobe koju želite da uklonite iz sistema.
+        </p>
+
         <div className='inputs'>
           <div className='input-group-custom'>
             <input 
@@ -35,11 +48,12 @@ function DeleteUser() {
               value={usernameToDelete} 
               onChange={(e) => setUsernameToDelete(e.target.value)} 
               required 
+              style={{ padding: '12px', width: '100%', borderRadius: '8px', border: '1px solid #ddd' }}
             />
           </div>
         </div>
 
-        <button type='submit' className='sign-in' style={{backgroundColor: '#dc3545'}}>
+        <button type='submit' className='sign-in' style={{backgroundColor: '#dc3545', marginTop: '20px'}}>
             OBRIŠI TRAJNO
         </button>
       </form>

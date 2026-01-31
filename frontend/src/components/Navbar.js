@@ -4,7 +4,7 @@ import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { IonIcon } from '@ionic/react'; 
 import { person, list, shieldCheckmark, statsChart } from 'ionicons/icons';
 import '../styles/App.css'; 
-import API, { setResetTimerCallback } from '../api'; // PROMENJENO: usklađeno sa api.js
+import API, { setResetTimerCallback } from '../api';
 
 function OurNavbar({ userId, username }) {
   const [user, setUser] = useState({
@@ -16,24 +16,24 @@ function OurNavbar({ userId, username }) {
 
   const logoutTimerRef = useRef(null);
 
-  // FUNKCIJA ZA RESETOVANJE TAJMERA
+  // LOGIKA ZA AUTOMATSKU ODJAVU (Frontend osigurač)
   const resetTimer = useCallback(() => {
     if (logoutTimerRef.current) {
       clearTimeout(logoutTimerRef.current);
     }
 
+    // Ako je korisnik ulogovan, pokrećemo tajmer od 60 sekundi
+    // Svaki mrežni zahtev kroz API.js će pozvati ovu funkciju i resetovati sat
     if (userId && userId !== -1) {
-      // Svaki put kad se pozove, pokreće novih 60s (Sliding Expiration)
-      
       logoutTimerRef.current = setTimeout(() => {
         console.warn("Sesija je istekla zbog neaktivnosti na frontendu.");
-        window.location.href = '/login';
+        logout(); // Pozivamo logout funkciju za čišćenje
       }, 60000); 
     }
   }, [userId]);
 
   useEffect(() => {
-    // PROMENJENO: Koristimo tačan naziv funkcije iz api.js
+    // Povezujemo Navbar sa API presretačem
     setResetTimerCallback(resetTimer);
 
     const fetchUserData = async () => {
@@ -54,16 +54,18 @@ function OurNavbar({ userId, username }) {
 
     return () => {
       if (logoutTimerRef.current) clearTimeout(logoutTimerRef.current);
-      // PROMENJENO: Čistimo callback
-      setResetTimerCallback(null); 
+      setResetTimerCallback(null); // Čistimo referencu pri unmount-u
     };
   }, [userId, resetTimer]);
 
   const logout = async () => {
     try {
+      // Obaveštavamo backend da uništi sesiju u Redis-u
       await API.post('/User/Logout');
-      window.location.href = '/login';
     } catch (error) {
+      console.error("Greška pri logout-u na serveru", error);
+    } finally {
+      // Bez obzira na ishod na serveru, čistimo frontend i vraćamo na login
       window.location.href = '/login';
     }
   };

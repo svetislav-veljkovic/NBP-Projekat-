@@ -4,14 +4,11 @@ using backend.Repository;
 using backend.Helpers;
 using StackExchange.Redis;
 using System.Text.Json;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // --- 1. INFRASTRUKTURA ---
-// Redis postavljamo kao Singleton jer je ConnectionMultiplexer dizajniran da se deli
 builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
     ConnectionMultiplexer.Connect(builder.Configuration.GetConnectionString("Redis") ?? "localhost:6379"));
 
@@ -24,21 +21,23 @@ builder.Services.AddScoped<ITaskRepository, TaskRepository>();
 // --- 3. SERVISI ---
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ITaskService, TaskService>();
-builder.Services.AddScoped<RedisService>(); // Mora biti Scoped jer kontroleri zavise od njega u svakom requestu
-builder.Services.AddSingleton<JwtService>();
+builder.Services.AddScoped<RedisService>();
+builder.Services.AddSingleton<JwtService>(); // Može ostati ako ga koristiš za nešto drugo, ali za login ćemo koristiti Cookie
 builder.Services.AddHttpContextAccessor();
 
-// --- 4. AUTHENTICATION (Ovo ti je falilo da bi UseAuthentication radilo) ---
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
+// --- 4. AUTHENTICATION (Izmenjeno na Cookie za Redis sesije) ---
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
     {
-        options.TokenValidationParameters = new TokenValidationParameters
+        options.Cookie.Name = "TodoAppSession";
+        options.Cookie.HttpOnly = true; // Bezbednost: JS ne može da čita kolačić
+        options.ExpireTimeSpan = TimeSpan.FromMinutes(30); // TTL sesije
+        options.SlidingExpiration = true; // Resetuje tajmer pri svakoj aktivnosti
+        options.Events.OnRedirectToLogin = context =>
         {
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("OvoJeSadaTvojNoviSigurniKljucZaTodoAplikaciju2024!")),
-            ValidateIssuer = false,
-            ValidateAudience = false,
-            ClockSkew = TimeSpan.Zero
+            // Koristimo Microsoft.AspNetCore.Http.StatusCodes
+            context.Response.StatusCode = Microsoft.AspNetCore.Http.StatusCodes.Status401Unauthorized;
+            return Task.CompletedTask;
         };
     });
 
@@ -53,7 +52,7 @@ builder.Services.AddControllers()
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// --- 6. CORS ---
+// --- 6. CORS (Ključno za withCredentials na frontendu) ---
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp",
@@ -62,7 +61,7 @@ builder.Services.AddCors(options =>
             policy.WithOrigins("http://localhost:3000")
                   .AllowAnyMethod()
                   .AllowAnyHeader()
-                  .AllowCredentials();
+                  .AllowCredentials(); // Obavezno za kolačiće/sesije
         });
 });
 
@@ -78,7 +77,6 @@ if (app.Environment.IsDevelopment())
 app.UseRouting();
 app.UseCors("AllowReactApp");
 
-// Redosled je bitan: Authentication pa Authorization
 app.UseAuthentication();
 app.UseAuthorization();
 

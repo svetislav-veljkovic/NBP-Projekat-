@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import API from './api'; 
+import API, { setResetTimerCallback } from './api'; // Dodat import za callback
 
 import './styles/App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -22,7 +22,16 @@ function App() {
   const [userId, setUserId] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
 
+  // Funkcija koju API poziva pri svakom zahtevu da osveži sesiju na klijentu
+  const resetInactivityTimer = () => {
+    // Ovde bi išla logika za tvoj tajmer od 1 min ako ga prikazuješ
+    // console.log("Aktivnost detektovana, tajmer resetovan.");
+  };
+
   useEffect(() => {
+    // Povezujemo API interceptor sa funkcijom u ovoj komponenti
+    setResetTimerCallback(resetInactivityTimer);
+
     const fetchUser = async () => {
       try {
         const response = await API.get('/User/GetUser');
@@ -45,7 +54,6 @@ function App() {
     <BrowserRouter>
       <OurNavbar userId={userId} username={username} isAdmin={isAdmin} />
       
-      {/* WRAPPER koji sprečava da sadržaj ode pod navbar */}
       <div className="main-content-wrapper">
         <div className="container-fluid">
           <Routes>

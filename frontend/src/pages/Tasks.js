@@ -1,20 +1,23 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { MDBContainer, MDBCard, MDBCardBody, MDBInput, MDBRow, MDBCol, MDBIcon } from 'mdb-react-ui-kit';
 import { Button } from 'react-bootstrap';
-import Axios from '../api';
+import API from '../api'; // Promenjeno sa Axios na API (tvoja instanca)
 import { toast, ToastContainer } from 'react-toastify';
 import '../styles/Tasks.css';
-import '../styles/App.css'; // Zbog globalnih klasa
+import '../styles/App.css'; 
 
 function Tasks({ userId }) {
   const [tasks, setTasks] = useState([]);
   const [newTask, setNewTask] = useState({ title: '', description: '' });
-  const baseUrl = "https://localhost:7248/api/Task";
+  
+  // Koristimo samo relativnu putanju
+  const baseUrl = "/Task";
 
   const fetchTasks = useCallback(async () => {
     if (userId) {
       try {
-        const res = await Axios.get(`${baseUrl}/MyTasks`, { withCredentials: true });
+        // API instanca sama dodaje https://localhost:7248/api i credentials
+        const res = await API.get(`${baseUrl}/MyTasks`);
         setTasks(res.data);
       } catch (err) { 
         console.error("Greška pri dohvatanju:", err); 
@@ -27,7 +30,7 @@ function Tasks({ userId }) {
   const handleAddTask = async (e) => {
     e.preventDefault();
     try {
-      await Axios.post(`${baseUrl}/Add`, newTask, { withCredentials: true });
+      await API.post(`${baseUrl}/Add`, newTask);
       setNewTask({ title: '', description: '' });
       toast.success("Zadatak uspešno dodat!");
       fetchTasks();
@@ -38,7 +41,7 @@ function Tasks({ userId }) {
 
   const completeTask = async (id) => {
     try {
-      await Axios.post(`${baseUrl}/Complete/${id}`, {}, { withCredentials: true });
+      await API.post(`${baseUrl}/Complete/${id}`, {});
       toast.success("Zadatak završen! +10 poena");
       fetchTasks();
     } catch (err) { 
@@ -48,13 +51,11 @@ function Tasks({ userId }) {
 
   return (
     <MDBContainer className="mt-5 pt-5 pb-5">
-      {/* Centralni naslov */}
       <div className='header mb-5'>
         <div className='text'>📋 Moji Aktivni Zadaci</div>
         <div className='underline'></div>
       </div>
 
-      {/* Forma za dodavanje - Stakleni efekat */}
       <MDBCard className='mb-5 custom-card border-0'>
         <MDBCardBody className="p-4">
           <form onSubmit={handleAddTask}>
@@ -85,7 +86,6 @@ function Tasks({ userId }) {
         </MDBCardBody>
       </MDBCard>
 
-      {/* Lista zadataka */}
       <MDBRow>
         {tasks.length > 0 ? (
           tasks.map(t => (
@@ -124,4 +124,5 @@ function Tasks({ userId }) {
     </MDBContainer>
   );
 }
+
 export default Tasks;

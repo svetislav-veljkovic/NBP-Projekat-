@@ -7,12 +7,12 @@ import '../styles/App.css'; // Koristimo globalni CSS
 function ProductivityChart() {
     const [data, setData] = useState([]);
 
-    useEffect(() => {
-        // Obavezno proveri da li je bekend URL tačan
-        Axios.get("https://localhost:7248/api/Task/ProductivityData", { withCredentials: true })
-            .then(res => setData(res.data))
-            .catch(err => console.error("Greška pri dohvatanju podataka:", err));
-    }, []);
+  useEffect(() => {
+    // Umesto pune adrese, koristi samo rutu jer API instanca već zna bazu
+    Axios.get("/Task/ProductivityData") 
+        .then(res => setData(res.data))
+        .catch(err => console.error("Greška:", err));
+}, []);
 
     return (
         /* Koristimo custom-card klasu iz App.css */

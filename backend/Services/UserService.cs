@@ -13,11 +13,14 @@ namespace backend.Services
     {
         private readonly IUserRepository _userRepository;
         private readonly JwtService _jwtService;
+        // Dodajemo RedisService da bismo mogli da upisujemo hash pri registraciji
+        private readonly RedisService _redisService;
 
-        public UserService(IUserRepository userRepository, JwtService jwtService)
+        public UserService(IUserRepository userRepository, JwtService jwtService, RedisService redisService)
         {
             _userRepository = userRepository;
             _jwtService = jwtService;
+            _redisService = redisService;
         }
 
         public async Task<User> Register(UserRegisterDTO userDto)
@@ -44,7 +47,14 @@ namespace backend.Services
                 userDto.ProfilePicture ?? "default.png"
             );
 
-            return await _userRepository.Create(userCreated);
+            // 1. Upis u Cassandru (Glavna baza)
+            var savedUser = await _userRepository.Create(userCreated);
+
+            // 2. Upis u Redis Hash (Minimalni podaci: username, score)
+            // Ovo je specifičan zahtev profesora ("minimalni podaci se pamte u redisu za sta se koristi hash")
+            await _redisService.SaveUserHash(savedUser.Id.ToString(), savedUser.Username, 0);
+
+            return savedUser;
         }
 
         public async Task<string> Login(string email, string password)

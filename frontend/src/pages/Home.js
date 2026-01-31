@@ -3,14 +3,14 @@ import '../styles/App.css';
 import background from '../assets/background.jpg';
 import { Typewriter, Cursor } from 'react-simple-typewriter';
 import { MDBContainer, MDBRow, MDBCol, MDBCard, MDBCardBody, MDBIcon } from 'mdb-react-ui-kit';
-import Axios from '../api';
+import API from '../api'; // Promenjeno na tvoju API instancu
 
 function Home() {
   const [bestUsers, setBestUsers] = useState([]);
 
   useEffect(() => {
-    // Dohvatanje podataka sa Redis leaderboard-a
-    Axios.get("https://localhost:7248/api/Task/Leaderboard")
+    // Dohvatanje podataka sa Redis leaderboard-a koristeći relativnu putanju
+    API.get("/Task/Leaderboard")
       .then(res => {
         // Uzimamo prva 4 korisnika za prikaz na početnoj
         setBestUsers(res.data.slice(0, 4));
@@ -26,7 +26,7 @@ function Home() {
           <h2>
             <Typewriter 
               words={['Organizuj se.', 'Budi produktivan.', 'Pobedi na listi!']} 
-              loop={true} // Koristimo true umesto infinite varijable
+              loop={true} 
               typeSpeed={50} 
               deleteSpeed={50} 
             />
@@ -36,7 +36,6 @@ function Home() {
       </div>
 
       <MDBContainer className='mt-5 pb-5'>
-        {/* Naslov sekcije sa našim stilom */}
         <div className='header mb-5'>
           <div className='text'>🏆 Top Korisnici</div>
           <div className='underline'></div>
@@ -46,7 +45,6 @@ function Home() {
           {bestUsers.length > 0 ? (
             bestUsers.map((user, index) => (
               <MDBCol md="3" key={index} className="mb-4">
-                {/* Koristimo custom-card za hover efekat */}
                 <MDBCard className='text-center custom-card border-0'>
                   <MDBCardBody className="p-4">
                     <MDBIcon fas icon="user-circle" size="3x" className="mb-3 text-dark" />

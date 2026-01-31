@@ -1,5 +1,7 @@
 import axios from 'axios';
 
+// Kreiramo centralnu instancu. 
+// baseURL znači da u ostalim fajlovima pišeš samo npr. "/User/Login"
 const API = axios.create({
     baseURL: 'https://localhost:7248/api',
     withCredentials: true
@@ -11,7 +13,7 @@ export const setResetTimerCallback = (callback) => {
     resetTimerCallback = callback;
 };
 
-// 1. Request Interceptor
+// 1. Request Interceptor - Resetuje tajmer pri svakom SLANJU zahteva
 API.interceptors.request.use(
     (config) => {
         if (resetTimerCallback) resetTimerCallback();
@@ -20,7 +22,7 @@ API.interceptors.request.use(
     (error) => Promise.reject(error)
 );
 
-// 2. Response Interceptor
+// 2. Response Interceptor - Resetuje tajmer pri svakom PRIJEMU odgovora
 API.interceptors.response.use(
     (response) => {
         if (resetTimerCallback) resetTimerCallback();
@@ -29,8 +31,6 @@ API.interceptors.response.use(
     (error) => {
         if (error.response && error.response.status === 401) {
             const path = window.location.pathname;
-            // Preusmeravaj na login SAMO ako korisnik pokuša da pristupi zaštićenim stranicama
-            // Ne preusmeravaj ako je na /, /login ili /register
             const publicPaths = ['/', '/login', '/register'];
             if (!publicPaths.includes(path)) {
                 console.warn("Sesija nevalidna, preusmeravanje...");

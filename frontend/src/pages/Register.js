@@ -2,10 +2,9 @@ import React, { useState } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import { MDBContainer, MDBRow, MDBCol, MDBCard, MDBCardBody, MDBInput } from 'mdb-react-ui-kit';
 import { useNavigate } from 'react-router-dom';
-import Axios from '../api';
+import API from '../api'; // Promenjeno sa Axios na API
 import '../styles/Register.css';
-import '../styles/App.css'; // Dodajemo zbog btn-dark-custom i ostalih klasa
-
+import '../styles/App.css';
 
 function Register() {
   const [data, setData] = useState({
@@ -19,7 +18,8 @@ function Register() {
   });
 
   const navigate = useNavigate();
-  const url = 'https://localhost:7248/api/User/Register';
+  // Putanja je sada samo relativni endpoint
+  const url = '/User/Register';
 
   const handleInputChange = (e) => {
     setData({ ...data, [e.target.id]: e.target.value });
@@ -43,10 +43,8 @@ function Register() {
       profilePicture: data.profilePicture
     };
 
-    Axios.post(url, payload, {
-      withCredentials: true,
-      headers: { 'Content-Type': 'application/json' }
-    })
+    // Koristimo tvoju API instancu koja već ima baseURL i withCredentials
+    API.post(url, payload)
       .then((res) => {
         toast.success("Uspešna registracija! Preusmeravanje...");
         setTimeout(() => navigate('/login'), 2000);
@@ -75,7 +73,6 @@ function Register() {
           <MDBCol md="6" style={{ maxWidth: '500px' }}>
             <MDBCard className="bg-glass shadow-5">
               <MDBCardBody className="p-5">
-                {/* Naslov sekcije unutar kartice */}
                 <div className='header mb-4' style={{alignItems: 'flex-start'}}>
                     <div className='text' style={{fontSize: '28px'}}>Registracija</div>
                     <div className='underline' style={{margin: '0', width: '40px'}}></div>

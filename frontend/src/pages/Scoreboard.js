@@ -1,17 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { MDBContainer, MDBCard, MDBCardBody, MDBTable, MDBTableHead, MDBTableBody } from 'mdb-react-ui-kit';
-import Axios from '../api';
+import API from '../api'; // Promenjeno na tvoj API klijent
 import '../styles/Scoreboard.css';
-import '../styles/App.css'; // Zbog .header i .custom-card
+import '../styles/App.css'; 
 
 function Scoreboard() {
     const [leaders, setLeaders] = useState([]);
-    const url = "https://localhost:7248/api/Task/Leaderboard";
 
     useEffect(() => {
         const fetchLeaders = async () => {
             try {
-                const res = await Axios.get(url);
+                // Koristimo samo relativnu putanju jer API klijent već zna osnovu
+                const res = await API.get("/Task/Leaderboard");
                 setLeaders(res.data);
             } catch (err) {
                 console.error("Greška pri učitavanju rang liste", err);
@@ -22,7 +22,6 @@ function Scoreboard() {
 
     return (
         <MDBContainer className="mt-5 pt-5 pb-5">
-            {/* Naslov sekcije */}
             <div className='header mb-5'>
                 <div className='text'>Globalna Rang Lista</div>
                 <div className='underline'></div>
@@ -30,7 +29,6 @@ function Scoreboard() {
 
             <MDBCard className="custom-card border-0">
                 <MDBCardBody className="p-0 overflow-hidden"> 
-                    {/* p-0 da bi tabela išla od ivice do ivice unutar kartice */}
                     <MDBTable hover borderless align='middle' className="mb-0 custom-table">
                         <MDBTableHead>
                             <tr>

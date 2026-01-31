@@ -5,10 +5,11 @@ import { mail, lockClosed } from 'ionicons/icons';
 import '../styles/Log-In.css';
 import '../styles/App.css'; 
 import { useNavigate } from 'react-router-dom';
-import API from '../api'; // Uvozimo tvoju centralnu Axios instancu
+import API from '../api';
 
 function LogIn(props) {
-  const { setUserId } = props;
+  // Preuzimamo settere iz App.js props-a
+  const { setUserId, setUsername, setIsAdmin } = props;
   const navigate = useNavigate();
 
   const [data, setData] = useState({
@@ -19,32 +20,28 @@ function LogIn(props) {
   async function submit(e) {
     e.preventDefault();
     try {
-      /** * Koristimo API.post. 
-       * 1. Putanja je samo '/User/Login' jer je baseURL već u api.js
-       * 2. Ne treba JSON.stringify, Axios to radi sam
-       * 3. withCredentials: true se dodaje automatski iz api.js
-       */
+      // API instanca automatski dodaje baseURL i withCredentials
       const response = await API.post('/User/Login', {
         email: data.email,
         password: data.password
       });
 
-      // Ako dođe do ovde, status je 200 OK
+      const user = response.data;
       toast.success("Uspešan login!");
       
-      if (setUserId) {
-        setUserId(Math.random()); 
-      }
+      // Odmah ažuriramo globalno stanje u App.js
+      if (setUserId) setUserId(user.id || user.Id);
+      if (setUsername) setUsername(user.username || user.Username);
+      if (setIsAdmin) setIsAdmin(user.isAdmin || user.isadmin || false);
       
+      // Kratka pauza da korisnik vidi toast poruku
       setTimeout(() => navigate('/'), 800);
 
     } catch (error) {
-      // Axios greške hvata u catch bloku
       if (error.response) {
-        // Server je odgovorio sa greškom (npr. 401, 400)
+        // Server vratio grešku (400, 401, 500...)
         toast.error(error.response.data || "Neuspešna prijava: Proverite podatke.");
       } else {
-        // Server nije dostupan ili je mreža u prekidu
         toast.error("Server nije dostupan.");
       }
     }

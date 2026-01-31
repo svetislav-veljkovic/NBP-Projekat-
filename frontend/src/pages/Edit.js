@@ -1,15 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { MDBContainer, MDBRow, MDBCol, MDBCard, MDBCardBody, MDBInput } from 'mdb-react-ui-kit';
 import { toast, ToastContainer } from 'react-toastify';
-import Axios from '../api';
+import API from '../api'; // Promenjeno na API
 import '../styles/Register.css';
-import '../styles/App.css'; // Dodajemo i App.css zbog .header klase
+import '../styles/App.css'; 
 import { Button } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 
 function Edit() {
   const navigate = useNavigate();
-  const url = "https://localhost:7248/api/User/Edit";
 
   const [user, setUser] = useState({
     name: '',
@@ -20,14 +19,16 @@ function Edit() {
   });
 
   useEffect(() => {
-    Axios.get("https://localhost:7248/api/User/GetUser", { withCredentials: true })
+    // Koristimo relativnu putanju - API instanca dodaje baseURL
+    API.get("/User/GetUser")
       .then(res => setUser(res.data))
       .catch(err => toast.error("Greška pri učitavanju podataka"));
   }, []);
 
   const submit = (e) => {
     e.preventDefault();
-    Axios.put(url, user, { withCredentials: true })
+    // PUT zahtev na relativnu putanju /User/Edit
+    API.put("/User/Edit", user)
       .then(() => {
         toast.success("Profil uspešno ažuriran!");
         setTimeout(() => navigate('/profile'), 2000);
@@ -43,7 +44,6 @@ function Edit() {
             <MDBCard className='bg-glass shadow-5'>
               <MDBCardBody className='p-5'>
                 
-                {/* Usklađen naslov sa ostatkom aplikacije */}
                 <div className='header mb-5'>
                     <div className='text'>Izmeni profil</div>
                     <div className='underline'></div>
