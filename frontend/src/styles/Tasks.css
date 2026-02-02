@@ -1,9 +1,9 @@
-/* Stilovi za pojedinačne kartice zadataka */
 .task-card {
     background: #ffffff;
     border-radius: 15px !important;
     transition: all 0.3s ease;
-    border-left: 5px solid #2B3035 !important; /* Tamna crta sa leve strane za ozbiljnost */
+    border-left: 5px solid #2B3035 !important;
+    animation: slideIn 0.4s ease-out;
 }
 
 .task-card:hover {
@@ -11,44 +11,21 @@
     box-shadow: 0 12px 25px rgba(0,0,0,0.1) !important;
 }
 
-.task-title {
-    color: #2B3035;
-    margin: 0;
-}
-
-.task-desc {
-    color: #6c757d;
-    font-size: 0.95rem;
-    line-height: 1.5;
-}
-
-/* Dugme za završavanje */
-.btn-complete {
-    border-radius: 10px;
-    font-weight: 600;
-    padding: 10px;
-    border: none;
-    background-color: #28a745;
-    transition: 0.3s;
-}
-
-.btn-complete:hover {
-    background-color: #218838;
-    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
-}
-
-/* Animacija za nove zadatke */
-.task-card {
-    animation: slideIn 0.4s ease-out;
-}
-
 @keyframes slideIn {
-    from {
-        opacity: 0;
-        transform: scale(0.9);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+.action-icon {
+    cursor: pointer !important;
+    margin-left: 10px;
+    font-size: 1.1rem;
+    transition: transform 0.2s, color 0.2s;
+    /* Osiguravamo da su vidljive */
+    display: inline-block !important;
+    visibility: visible !important;
+}
+
+.action-icon:hover {
+    transform: scale(1.2);
 }

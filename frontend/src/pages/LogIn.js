@@ -6,52 +6,62 @@ import '../styles/Log-In.css';
 import '../styles/App.css'; 
 import { useNavigate } from 'react-router-dom';
 import API from '../api';
+import { Spinner } from 'react-bootstrap';
 
-function LogIn(props) {
-  // Preuzimamo settere iz App.js props-a
-  const { setUserId, setUsername, setIsAdmin } = props;
+function LogIn({ setUserId, setUsername, setIsAdmin, refreshUser }) {
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [data, setData] = useState({ email: "", password: "" });
 
-  const [data, setData] = useState({
-    email: "",
-    password: ""
-  });
+async function submit(e) {
+  e.preventDefault();
+  setLoading(true);
 
-  async function submit(e) {
-    e.preventDefault();
-    try {
-      // API instanca automatski dodaje baseURL i withCredentials
-      const response = await API.post('/User/Login', {
-        email: data.email,
-        password: data.password
-      });
+  try {
+    // 1. Slanje zahteva
+    const response = await API.post('/User/Login', {
+      email: data.email.toLowerCase().trim(),
+      password: data.password
+    });
 
-      const user = response.data;
-      toast.success("Uspešan login!");
-      
-      // Odmah ažuriramo globalno stanje u App.js
-      if (setUserId) setUserId(user.id || user.Id);
-      if (setUsername) setUsername(user.username || user.Username);
-      if (setIsAdmin) setIsAdmin(user.isAdmin || user.isadmin || false);
-      
-      // Kratka pauza da korisnik vidi toast poruku
-      setTimeout(() => navigate('/'), 800);
+    // 2. Provera strukture podataka (Backend šalje camelCase zbog JsonSerializerOptions)
+    const user = response.data;
+    
+    // Čuvanje osnovnih podataka odmah u state-u LogIn komponente
+    // Koristimo i velika i mala slova za svaki slučaj, mada bi camelCase trebao biti standard
+    const id = user.id || user.Id;
+    const usernameVal = user.username || user.Username;
+    const adminVal = user.isAdmin || user.IsAdmin || false;
 
-    } catch (error) {
-      if (error.response) {
-        // Server vratio grešku (400, 401, 500...)
-        toast.error(error.response.data || "Neuspešna prijava: Proverite podatke.");
-      } else {
-        toast.error("Server nije dostupan.");
-      }
+    toast.success(`Dobrodošao, ${usernameVal}!`);
+
+    // 3. Umesto setTimeout, koristimo asinhroni refresh i await
+    // refreshUser() će pozvati /api/User/GetUser koji sada ima kolačić
+    if (refreshUser) {
+      await refreshUser(); 
     }
+
+    // Ažuriramo globalno stanje u App.js preko prosleđenih funkcija
+    setUserId(id);
+    setUsername(usernameVal);
+    setIsAdmin(adminVal);
+
+    // 4. Navigacija nakon što je sve spremno
+    navigate('/');
+
+  } catch (error) {
+    console.error("Login fail detail:", error.response);
+    
+    // Hvatanje specifične poruke sa backenda (npr. "Nevalidni podaci u tokenu")
+    const errorMsg = error.response?.data?.message || error.response?.data || "Pogrešan email ili lozinka.";
+    toast.error(errorMsg);
+  } finally {
+    setLoading(false);
   }
+}
 
   function handle(e) {
-    setData({
-      ...data,
-      [e.target.id]: e.target.value
-    });
+    setData({ ...data, [e.target.id]: e.target.value });
   }
 
   return (
@@ -61,26 +71,25 @@ function LogIn(props) {
           <div className='text'>Prijavi se</div>
           <div className='underline'></div>
         </div>
-
         <div className='inputs'>
-          <div className='input-group-custom'>
-            <div className="d-flex align-items-center bg-light px-3 rounded-3" style={{border: '1px solid #ddd'}}>
-              <IonIcon icon={mail} style={{fontSize: '20px', color: '#555'}} />
+          <div className='input-group-custom mb-3'>
+            <div className="d-flex align-items-center bg-light px-3 rounded-3 border">
+              <IonIcon icon={mail} />
               <input 
                 onChange={handle} 
                 id="email" 
                 value={data.email} 
                 type='email' 
-                placeholder='Email adresa' 
+                placeholder='Email' 
                 required 
-                style={{background: 'transparent', border: 'none', outline: 'none', width: '100%', padding: '12px'}}
+                disabled={loading} 
+                style={{background: 'transparent', border: 'none', outline: 'none', width: '100%', padding: '12px'}} 
               />
             </div>
           </div>
-
-          <div className='input-group-custom'>
-            <div className="d-flex align-items-center bg-light px-3 rounded-3" style={{border: '1px solid #ddd'}}>
-              <IonIcon icon={lockClosed} style={{fontSize: '20px', color: '#555'}} />
+          <div className='input-group-custom mb-3'>
+            <div className="d-flex align-items-center bg-light px-3 rounded-3 border">
+              <IonIcon icon={lockClosed} />
               <input 
                 onChange={handle} 
                 id="password" 
@@ -88,19 +97,15 @@ function LogIn(props) {
                 type='password' 
                 placeholder='Lozinka' 
                 required 
-                style={{background: 'transparent', border: 'none', outline: 'none', width: '100%', padding: '12px'}}
+                disabled={loading} 
+                style={{background: 'transparent', border: 'none', outline: 'none', width: '100%', padding: '12px'}} 
               />
             </div>
           </div>
         </div>
-
-        <button type="submit" className='sign-in'>
-          PRIJAVI SE
+        <button type="submit" className='sign-in' disabled={loading}>
+          {loading ? <Spinner animation="border" size="sm" /> : "PRIJAVI SE"}
         </button>
-
-        <div className="text-center mt-3">
-            <small className="text-muted">Nemaš nalog? <span style={{cursor:'pointer', color:'#2B3035', fontWeight:'bold'}} onClick={() => navigate('/register')}>Registruj se</span></small>
-        </div>
       </form>
       <ToastContainer position="top-right" autoClose={2000} />
     </div>

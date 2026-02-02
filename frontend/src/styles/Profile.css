@@ -35,3 +35,16 @@
   color: #2B3035 !important; /* Naša tema je crna, ne plava */
   font-weight: 600;
 }
+/* Osigurava da kartica na profilu ne postane preuska na srednjim ekranima */
+.custom-card {
+  min-width: 320px; 
+  border-radius: 15px !important;
+}
+
+/* Popravka za vertikalno centriranje na mobilnim telefonima */
+@media (max-width: 768px) {
+  .profile-wrapper {
+    padding-top: 100px; /* Da ne bi navbar prekrio vrh */
+    align-items: flex-start; 
+  }
+}

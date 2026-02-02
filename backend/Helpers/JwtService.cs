@@ -1,34 +1,31 @@
 ﻿using Microsoft.IdentityModel.Tokens;
 using System;
 using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims; // Dodato za Claim-ove
+using System.Security.Claims;
 using System.Text;
 
 namespace backend.Helpers
 {
     public class JwtService
     {
-        // Ključ mora biti dugačak bar 32 karaktera za HS256
-        private string secureKey = "OvoJeSadaTvojNoviSigurniKljucZaTodoAplikaciju2024!";
+        // Konstanta da ne bi bilo greške u kucanju
+        private const string SecureKey = "SuperSigurnaLozinkaZaTodoAplikaciju2026_Projekat!";
 
-        // Promenjeno sa 'int id' na 'string id' zbog Cassandre
         public string Generate(string id)
         {
-            var symmetricSecurityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secureKey));
+            // OBAVEZNO UTF8
+            var symmetricSecurityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(SecureKey));
             var credentials = new SigningCredentials(symmetricSecurityKey, SecurityAlgorithms.HmacSha256Signature);
 
-            // Standardniji način: Koristimo Claims umesto direktnog payload-a
             var claims = new[]
             {
-                new Claim(JwtRegisteredClaimNames.Sub, id),
+                new Claim(ClaimTypes.NameIdentifier, id),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
 
             var token = new JwtSecurityToken(
-                issuer: null,
-                audience: null,
                 claims: claims,
-                expires: DateTime.UtcNow.AddDays(1), // UTC vreme je sigurnije
+                expires: DateTime.UtcNow.AddDays(1),
                 signingCredentials: credentials);
 
             return new JwtSecurityTokenHandler().WriteToken(token);
@@ -37,18 +34,29 @@ namespace backend.Helpers
         public JwtSecurityToken Verify(string jwt)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(secureKey);
+            var key = Encoding.UTF8.GetBytes(SecureKey);
 
-            tokenHandler.ValidateToken(jwt, new TokenValidationParameters
+            try
             {
-                IssuerSigningKey = new SymmetricSecurityKey(key),
-                ValidateIssuerSigningKey = true,
-                ValidateIssuer = false,
-                ValidateAudience = false,
-                ClockSkew = TimeSpan.Zero // Eliminiše defaultnih 5 minuta kašnjenja
-            }, out SecurityToken validatedToken);
+                tokenHandler.ValidateToken(jwt, new TokenValidationParameters
+                {
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                    ValidateIssuerSigningKey = true,
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
+                    // ClockSkew postavlja dozvoljeno odstupanje vremena. 
+                    // Ako je Zero, token ističe u sekundu tačno.
+                    ClockSkew = TimeSpan.Zero
+                }, out SecurityToken validatedToken);
 
-            return (JwtSecurityToken)validatedToken;
+                return (JwtSecurityToken)validatedToken;
+            }
+            catch (Exception ex)
+            {
+                // Loguj ex.Message negde ako možeš da vidiš zašto tačno puca
+                // Poruka koju vidiš u Swagger-u dolazi odavde
+                throw new Exception("Nevalidni podaci u tokenu.");
+            }
         }
     }
 }

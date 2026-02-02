@@ -14,14 +14,25 @@ public class TaskRepository : ITaskRepository
         _mapper = new Mapper(_session);
     }
 
-    public async Task Create(TodoTask task) => await _mapper.InsertAsync(task);
+    public async System.Threading.Tasks.Task Create(TodoTask task) => await _mapper.InsertAsync(task);
 
-    public async Task<IEnumerable<TodoTask>> GetByUserId(Guid userId)
+    public async System.Threading.Tasks.Task<IEnumerable<TodoTask>> GetByUserId(Guid userId)
         => await _mapper.FetchAsync<TodoTask>("SELECT * FROM todo_task WHERE userid = ?", userId);
 
-    public async Task Delete(Guid userId, Guid taskId)
+    public async System.Threading.Tasks.Task Delete(Guid userId, Guid taskId)
         => await _session.ExecuteAsync(new SimpleStatement("DELETE FROM todo_task WHERE userid = ? AND id = ?", userId, taskId));
 
-    public async Task<TodoTask> GetById(Guid userId, Guid taskId)
+    public async System.Threading.Tasks.Task<TodoTask> GetById(Guid userId, Guid taskId)
         => await _mapper.FirstOrDefaultAsync<TodoTask>("SELECT * FROM todo_task WHERE userid = ? AND id = ?", userId, taskId);
+
+    // Obavezno dodaj ovo da bi UpdateTask u servisu mogao da radi
+    public async System.Threading.Tasks.Task Update(TodoTask task)
+        => await _mapper.UpdateAsync(task);
+
+    public async System.Threading.Tasks.Task DeleteAllByUserId(Guid userId)
+    {
+        // Briše sve redove koji imaju isti userid (ceo partition key)
+        var query = "DELETE FROM todo_task WHERE userid = ?";
+        await _session.ExecuteAsync(new SimpleStatement(query, userId));
+    }
 }

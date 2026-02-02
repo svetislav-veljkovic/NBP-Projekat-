@@ -4,14 +4,16 @@ using backend.Repository;
 using backend.Helpers;
 using StackExchange.Redis;
 using System.Text.Json;
-using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using Microsoft.OpenApi.Models; // OBAVEZNO DODAJ OVO
 
 var builder = WebApplication.CreateBuilder(args);
 
 // --- 1. INFRASTRUKTURA ---
 builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
     ConnectionMultiplexer.Connect(builder.Configuration.GetConnectionString("Redis") ?? "localhost:6379"));
-
 builder.Services.AddSingleton<CassandraService>();
 
 // --- 2. REPOZITORIJUMI ---
@@ -22,22 +24,29 @@ builder.Services.AddScoped<ITaskRepository, TaskRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ITaskService, TaskService>();
 builder.Services.AddScoped<RedisService>();
-builder.Services.AddSingleton<JwtService>(); // Može ostati ako ga koristiš za nešto drugo, ali za login ćemo koristiti Cookie
+builder.Services.AddSingleton<JwtService>();
 builder.Services.AddHttpContextAccessor();
 
-// --- 4. AUTHENTICATION (Izmenjeno na Cookie za Redis sesije) ---
-builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-    .AddCookie(options =>
+// --- 4. AUTHENTICATION ---
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
     {
-        options.Cookie.Name = "TodoAppSession";
-        options.Cookie.HttpOnly = true; // Bezbednost: JS ne može da čita kolačić
-        options.ExpireTimeSpan = TimeSpan.FromMinutes(30); // TTL sesije
-        options.SlidingExpiration = true; // Resetuje tajmer pri svakoj aktivnosti
-        options.Events.OnRedirectToLogin = context =>
+        options.TokenValidationParameters = new TokenValidationParameters
         {
-            // Koristimo Microsoft.AspNetCore.Http.StatusCodes
-            context.Response.StatusCode = Microsoft.AspNetCore.Http.StatusCodes.Status401Unauthorized;
-            return Task.CompletedTask;
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("SuperSigurnaLozinkaZaTodoAplikaciju2026_Projekat!")),
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            ClockSkew = TimeSpan.Zero
+        };
+
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                context.Token = context.Request.Cookies["jwt"];
+                return Task.CompletedTask;
+            }
         };
     });
 
@@ -50,9 +59,34 @@ builder.Services.AddControllers()
     });
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 
-// --- 6. CORS (Ključno za withCredentials na frontendu) ---
+// --- OVDE JE ISPRAVKA ZA SWAGGER ---
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo { Title = "Backend API", Version = "v1" });
+
+    // Definisanje Cookie autentifikacije u Swagger interfejsu
+    options.AddSecurityDefinition("CookieAuth", new OpenApiSecurityScheme
+    {
+        Type = SecuritySchemeType.ApiKey,
+        In = ParameterLocation.Cookie,
+        Name = "jwt",
+        Description = "Prvo uradi Login ruku, pa ce ovde raditi automatski."
+    });
+
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "CookieAuth" }
+            },
+            Array.Empty<string>()
+        }
+    });
+});
+
+// --- 6. CORS ---
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp",
@@ -61,13 +95,13 @@ builder.Services.AddCors(options =>
             policy.WithOrigins("http://localhost:3000")
                   .AllowAnyMethod()
                   .AllowAnyHeader()
-                  .AllowCredentials(); // Obavezno za kolačiće/sesije
+                  .AllowCredentials();
         });
 });
 
 var app = builder.Build();
 
-// --- 7. MIDDLEWARE ---
+// --- 7. MIDDLEWARE REDOSLED (BITNO!) ---
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -75,11 +109,12 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseRouting();
+
 app.UseCors("AllowReactApp");
 
 app.UseAuthentication();
 app.UseAuthorization();
-
+app.UseStaticFiles(); 
 app.MapControllers();
 
 app.Run();

@@ -1,8 +1,8 @@
-using System;
 
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 namespace backend.DTOs
 {
-    // Koristi se za slanje osnovnih podataka o korisniku na frontend
     public class UserDTO
     {
         public string? Name { get; set; }
@@ -10,9 +10,9 @@ namespace backend.DTOs
         public string? Username { get; set; }
         public string? Email { get; set; }
         public string? ProfilePicture { get; set; }
+        public bool IsAdmin { get; set; } // NOVO: Za React Navbar login logiku
     }
 
-    // Podaci potrebni za registraciju novog korisnika
     public class UserRegisterDTO
     {
         public string? Name { get; set; }
@@ -24,26 +24,33 @@ namespace backend.DTOs
         public string? ProfilePicture { get; set; }
     }
 
-    // Podaci koje korisnik može da ažurira na svom profilu
     public class UserUpdateDTO
     {
-        public string? Id { get; set; } // Promenjeno u string zbog Cassandre
+        [FromForm(Name = "id")]
+        public string? Id { get; set; }
+
+        [FromForm(Name = "name")]
         public string? Name { get; set; }
+
+        [FromForm(Name = "lastName")]
         public string? LastName { get; set; }
+
+        [FromForm(Name = "image")]
+        public IFormFile? Image { get; set; }
+
+        // Ovo polje popunjavamo u kontroleru, ne dolazi sa frontenda
         public string? ProfilePicture { get; set; }
     }
-
-    // Podaci za Login
     public class UserLoginDTO
     {
         public string? Email { get; set; }
         public string? Password { get; set; }
     }
 
-    // Minimalni podaci o korisniku (npr. za rang listu u Redis-u)
     public class UserGetDTO
     {
         public string? Id { get; set; }
         public string? Username { get; set; }
+        public bool IsAdmin { get; set; } // NOVO
     }
 }

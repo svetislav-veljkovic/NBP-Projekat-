@@ -20,17 +20,28 @@ namespace backend.Models
         [Column("description")]
         public string Description { get; set; } = string.Empty;
 
-        [Column("createdat")] // USKLAĐENO SA TVOJOM TABELOM (nema donje crte _)
+        [Column("createdat")]
         public DateTime CreatedAt { get; set; }
 
-        [Column("iscompleted")] // USKLAĐENO SA TVOJOM TABELOM
+        [Column("iscompleted")]
         public bool IsCompleted { get; set; }
+
+        // --- NOVA POLJA KOJA SU FALILA ---
+        [Column("priority")]
+        public string Priority { get; set; } = "Medium";
+
+        [Column("duedate")]
+        public DateTime? DueDate { get; set; }
+
+        [Column("completedat")]
+        public DateTime? CompletedAt { get; set; }
 
         public TodoTask()
         {
             Id = Guid.NewGuid();
             CreatedAt = DateTime.UtcNow;
             IsCompleted = false;
+            Priority = "Medium";
         }
     }
 }

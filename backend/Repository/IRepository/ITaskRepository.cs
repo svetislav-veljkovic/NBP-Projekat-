@@ -2,8 +2,10 @@
 
 public interface ITaskRepository
 {
-    Task Create(TodoTask task);
-    Task<IEnumerable<TodoTask>> GetByUserId(Guid userId);
-    Task Delete(Guid userId, Guid taskId);
-    Task<TodoTask> GetById(Guid userId, Guid taskId);
+    System.Threading.Tasks.Task Create(TodoTask task);
+    System.Threading.Tasks.Task<IEnumerable<TodoTask>> GetByUserId(Guid userId);
+    System.Threading.Tasks.Task Delete(Guid userId, Guid taskId);
+    System.Threading.Tasks.Task<TodoTask> GetById(Guid userId, Guid taskId);
+    System.Threading.Tasks.Task Update(TodoTask task); // Dodato!
+    System.Threading.Tasks.Task DeleteAllByUserId(Guid userId);
 }

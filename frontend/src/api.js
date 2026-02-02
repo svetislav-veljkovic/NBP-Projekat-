@@ -1,9 +1,8 @@
 import axios from 'axios';
 
-// Kreiramo centralnu instancu. 
-// baseURL znači da u ostalim fajlovima pišeš samo npr. "/User/Login"
+// baseURL postavljen na tvoj HTTPS port, withCredentials obavezan za kolačiće
 const API = axios.create({
-    baseURL: 'https://localhost:7248/api',
+    baseURL: 'https://localhost:7248/api', 
     withCredentials: true
 });
 
@@ -13,7 +12,7 @@ export const setResetTimerCallback = (callback) => {
     resetTimerCallback = callback;
 };
 
-// 1. Request Interceptor - Resetuje tajmer pri svakom SLANJU zahteva
+// 1. Request Interceptor - Resetuje tajmer neaktivnosti pri svakom slanju
 API.interceptors.request.use(
     (config) => {
         if (resetTimerCallback) resetTimerCallback();
@@ -22,20 +21,16 @@ API.interceptors.request.use(
     (error) => Promise.reject(error)
 );
 
-// 2. Response Interceptor - Resetuje tajmer pri svakom PRIJEMU odgovora
 API.interceptors.response.use(
     (response) => {
         if (resetTimerCallback) resetTimerCallback();
         return response;
     },
     (error) => {
+        // Ako je 401, samo prosledi grešku dalje, nemoj raditi window.location.href
+        // To će omogućiti fetchUser-u u App.js da uđe u catch blok i postavi userId na -1
         if (error.response && error.response.status === 401) {
-            const path = window.location.pathname;
-            const publicPaths = ['/', '/login', '/register'];
-            if (!publicPaths.includes(path)) {
-                console.warn("Sesija nevalidna, preusmeravanje...");
-                window.location.href = '/login';
-            }
+            console.warn("Sesija nije aktivna (401).");
         }
         return Promise.reject(error);
     }

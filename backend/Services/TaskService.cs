@@ -1,4 +1,5 @@
 ﻿using backend.Models;
+using backend.DTOs;
 using backend.Repository;
 using backend.Services.IServices;
 using System;
@@ -19,99 +20,148 @@ namespace backend.Services
             _redisService = redisService;
         }
 
-        // --- DODAVANJE ZADATKA ---
-        public async Task<TodoTask> AddTask(Guid userId, string title, string description)
+        public async Task<TodoTask> AddTask(Guid userId, string title, string description, string priority, DateTime? dueDate)
         {
             var task = new TodoTask
             {
+                Id = Guid.NewGuid(),
                 UserId = userId,
                 Title = title,
                 Description = description,
+                Priority = priority ?? "Medium",
+                DueDate = dueDate,
                 CreatedAt = DateTime.UtcNow,
                 IsCompleted = false
             };
 
-            // 1. Čuvanje u Cassandri (Persistent Storage)
             await _taskRepo.Create(task);
 
-            // 2. Čuvanje u Redis Hash-u (Podaci o zadatku)
-            await _redisService.CacheTaskData(task.Id.ToString(), title, description);
-
-            // 3. Povezivanje u Redis Set-u (User -> Task)
-            // Ovo omogućava "brzu dostupnost" koju prof traži
+            // Redis keširanje (HASH za podatke, SET za vezu sa korisnikom)
+            await _redisService.CacheTaskData(task.Id.ToString(), title, description, task.Priority, task.DueDate);
             await _redisService.AddTaskToUserSet(userId.ToString(), task.Id.ToString());
 
             return task;
         }
 
-        // --- PRIKAZ ZADATAKA ---
-        public async Task<List<TodoTask>> GetActiveTasks(Guid userId)
+        public async Task<List<TodoTask>> GetFilteredTasks(Guid userId, string status, string sortBy)
         {
-            // 1. Prvo pokušavamo da čitamo iz Redisa (Brzi keš)
-            var redisTasksData = await _redisService.GetTasksFromRedis(userId.ToString());
+            List<TodoTask> tasks = new List<TodoTask>();
 
-            if (redisTasksData.Count > 0)
+            // Vuku se SAMO aktivni zadaci iz REDIS-a
+            // Ignorišemo status "completed" i ne pozivamo Cassandru uopšte ovde
+            var taskIds = await _redisService.GetUserTaskIds(userId.ToString());
+            foreach (var id in taskIds)
             {
-                // Ako ima podataka u Redisu, pretvaramo ih u TodoTask objekte
-                var redisTasks = new List<TodoTask>();
-                foreach (var data in redisTasksData)
+                var taskData = await _redisService.GetTaskData(id);
+                if (taskData != null)
                 {
-                    redisTasks.Add(new TodoTask
+                    tasks.Add(new TodoTask
                     {
-                        Id = Guid.Parse(data["id"]),
+                        Id = Guid.Parse(id),
                         UserId = userId,
-                        Title = data["title"],
-                        Description = data["description"],
-                        IsCompleted = false // U Redisu držimo samo aktivne
+                        Title = taskData["title"],
+                        Description = taskData["description"],
+                        Priority = taskData["priority"],
+                        DueDate = string.IsNullOrEmpty(taskData["dueDate"]) ? null : DateTime.Parse(taskData["dueDate"]),
+                        CreatedAt = DateTime.UtcNow, // Redis ne mora da pamti tačan CreatedAt za listu
+                        IsCompleted = false
                     });
                 }
-                return redisTasks;
             }
 
-            // 2. Fallback na Cassandru (ako je Redis prazan ili je istekao)
-            var tasks = await _taskRepo.GetByUserId(userId);
-            return tasks.Where(t => !t.IsCompleted).ToList();
+            return ApplySorting(tasks, sortBy);
         }
+        // --- VRATIO SAM METODE KOJE SU FALILE ---
 
-        // --- ZAVRŠAVANJE ZADATKA (Check-off) ---
+        public async Task<List<TodoTask>> GetActiveTasks(Guid userId)
+            => await GetFilteredTasks(userId, "active", "date");
+
+        public async Task<List<KeyValuePair<string, double>>> GetLeaderboard()
+            => await _redisService.GetTopUsers(5);
+
+        // ----------------------------------------
+
         public async Task CompleteTask(Guid userId, Guid taskId, string username)
         {
-            // 1. Dohvati zadatak iz Cassandre da imamo sve podatke (datum itd.)
             var task = await _taskRepo.GetById(userId, taskId);
             if (task == null) throw new Exception("Zadatak nije pronađen.");
 
-            // 2. "Check-off operacija": Arhiviramo ga u Cassandri
+            // Određujemo koliko poena vredi ovaj zadatak
+            // Možeš prilagoditi brojeve (npr. 1, 2, 3 ili 5, 10, 15)
+            int weight = task.Priority?.ToLower() switch
+            {
+                "high" => 3,
+                "medium" => 2,
+                "low" => 1,
+                _ => 1
+            };
+
             task.IsCompleted = true;
-            await _taskRepo.Create(task); // Update u Cassandri
+            task.CompletedAt = DateTime.UtcNow;
 
-            // 3. Brišemo iz Redisa (Hash i veza sa korisnikom)
-            // Prof: "brisemo taj task, brisemo da je taj zadatak povezan sa korisnikom"
-            await _redisService.RemoveTaskFromRedis(userId.ToString(), taskId.ToString());
+            // Arhiviranje u Cassandri (ovde ostaje podatak za grafikon produktivnosti)
+            await _taskRepo.Update(task);
 
-            // 4. Ažuriramo Scoreboard (Sorted Set)
-            // Prof: "azuriramo podatke o score-u"
-            await _redisService.IncrementScore(username, 1);
+            // Šaljemo weight u Redis metodu
+            await _redisService.CompleteTaskCheckOff(userId.ToString(), taskId.ToString(), username, weight);
         }
 
-        public async Task<List<KeyValuePair<string, double>>> GetLeaderboard()
+        public async Task UpdateTask(Guid userId, Guid taskId, UpdateTaskDTO taskDto)
         {
-            return await _redisService.GetTopUsers(5); // Top 5 po zahtevu
+            var task = await _taskRepo.GetById(userId, taskId);
+            if (task == null) throw new Exception("Zadatak nije pronađen.");
+
+            task.Title = taskDto.Title;
+            task.Description = taskDto.Description;
+            task.Priority = taskDto.Priority;
+            task.DueDate = taskDto.DueDate;
+
+            await _taskRepo.Update(task);
+
+            if (!task.IsCompleted)
+            {
+                await _redisService.CacheTaskData(task.Id.ToString(), task.Title, task.Description, task.Priority, task.DueDate);
+            }
         }
 
-        public async Task<object> GetProductivityData(Guid userId)
+        public async Task DeleteTask(Guid userId, Guid taskId)
         {
-            // Ovo čita arhivirane (završene) zadatke iz Cassandre
-            var allTasks = await _taskRepo.GetByUserId(userId);
+            var task = await _taskRepo.GetById(userId, taskId);
+            if (task != null)
+            {
+                await _taskRepo.Delete(userId, taskId);
+                await _redisService.RemoveTaskFromRedis(userId.ToString(), taskId.ToString());
+            }
+        }
 
-            return allTasks
-                .Where(t => t.IsCompleted)
-                .GroupBy(t => t.CreatedAt.ToString("yyyy-MM-dd"))
-                .Select(g => new {
-                    day = g.Key,
-                    count = g.Count()
-                })
+        public async Task<object> GetProductivityData(Guid userId, string period)
+        {
+            var tasks = (await _taskRepo.GetByUserId(userId)).ToList();
+            var completedTasks = tasks.Where(t => t.IsCompleted);
+
+            if (period == "7days")
+                completedTasks = completedTasks.Where(t => t.CreatedAt >= DateTime.UtcNow.AddDays(-7));
+            else if (period == "month")
+                completedTasks = completedTasks.Where(t => t.CreatedAt >= DateTime.UtcNow.AddMonths(-1));
+
+            return completedTasks
+                .GroupBy(t => t.CreatedAt.ToString(period == "month" ? "yyyy-MM-dd" : "dd.MM."))
+                .Select(g => new { day = g.Key, count = g.Count() })
                 .OrderBy(x => x.day)
                 .ToList();
+        }
+
+        private List<TodoTask> ApplySorting(List<TodoTask> tasks, string sortBy)
+        {
+            return sortBy switch
+            {
+                "priority" => tasks.OrderByDescending(t => t.Priority == "High")
+                                  .ThenByDescending(t => t.Priority == "Medium")
+                                  .ThenByDescending(t => t.Priority == "Low").ToList(),
+                "due" => tasks.OrderBy(t => t.DueDate ?? DateTime.MaxValue).ToList(),
+                "status" => tasks.OrderBy(t => t.IsCompleted).ToList(),
+                _ => tasks.OrderByDescending(t => t.CreatedAt).ToList()
+            };
         }
     }
 }

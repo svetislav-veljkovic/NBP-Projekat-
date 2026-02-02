@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import { MDBContainer, MDBRow, MDBCol, MDBCard, MDBCardBody, MDBInput } from 'mdb-react-ui-kit';
 import { useNavigate } from 'react-router-dom';
-import API from '../api'; // Promenjeno sa Axios na API
+import API from '../api';
 import '../styles/Register.css';
 import '../styles/App.css';
+import { Spinner } from 'react-bootstrap';
 
 function Register() {
   const [data, setData] = useState({
@@ -17,15 +18,14 @@ function Register() {
     profilePicture: 'default.png'
   });
 
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  // Putanja je sada samo relativni endpoint
-  const url = '/User/Register';
 
   const handleInputChange = (e) => {
     setData({ ...data, [e.target.id]: e.target.value });
   };
 
-  const submit = (e) => {
+  const submit = async (e) => {
     e.preventDefault();
 
     if (data.password !== data.repeatedPassword) {
@@ -33,26 +33,26 @@ function Register() {
       return;
     }
 
+    // Priprema podataka: Trim i pretvaranje u mala slova za username/email
+    // Ovo osigurava da Cassandra i Redis uvek barataju sa konzistentnim ključevima
     const payload = {
-      name: data.name,
-      lastName: data.lastName,
-      username: data.username,
-      email: data.email,
-      password: data.password,
-      repeatedPassword: data.repeatedPassword,
-      profilePicture: data.profilePicture
+      ...data,
+      username: data.username.trim().toLowerCase(),
+      email: data.email.trim().toLowerCase(),
     };
 
-    // Koristimo tvoju API instancu koja već ima baseURL i withCredentials
-    API.post(url, payload)
-      .then((res) => {
-        toast.success("Uspešna registracija! Preusmeravanje...");
-        setTimeout(() => navigate('/login'), 2000);
-      })
-      .catch((error) => {
-        const errorMsg = error.response?.data || "Greška pri registraciji";
-        toast.error(typeof errorMsg === 'string' ? errorMsg : "Neispravni podaci.");
-      });
+    setIsLoading(true);
+    try {
+      await API.post('/User/Register', payload);
+      
+      toast.success("Uspešna registracija! Preusmeravanje na prijavu...");
+      setTimeout(() => navigate('/login'), 2000);
+    } catch (error) {
+      const errorMsg = error.response?.data || "Greška pri registraciji";
+      toast.error(typeof errorMsg === 'string' ? errorMsg : "Proverite unete podatke.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -60,13 +60,14 @@ function Register() {
       <MDBContainer fluid className="p-4">
         <MDBRow className="d-flex justify-content-center align-items-center min-vh-100">
           
-          <MDBCol md="6" className="text-center text-md-start d-flex flex-column justify-content-center">
+          <MDBCol md="6" className="text-center text-md-start d-flex flex-column justify-content-center d-none d-md-flex">
             <h1 className="my-5 display-3 fw-bold ls-tight px-3" style={{ color: '#555' }}>
               Pridruži se <br />
-              <span style={{ color: '#2B3035' }}>Organizuj se lako</span>
+              <span style={{ color: '#4c00b0' }}>Organizuj se lako</span>
             </h1>
             <p className="px-3 text-muted">
-              Dobrodošli u TodoApp. Postanite deo zajednice koja efikasno upravlja svojim vremenom i zadacima.
+              Postani deo zajednice koja efikasno upravlja svojim vremenom. 
+              Završi zadatke, skupljaj poene i osvoji vrh rang liste!
             </p>
           </MDBCol>
 
@@ -81,24 +82,30 @@ function Register() {
                 <form onSubmit={submit}>
                   <MDBRow>
                     <MDBCol col="6">
-                      <MDBInput onChange={handleInputChange} id="name" label="Ime" type="text" required wrapperClass="mb-4" />
+                      <MDBInput onChange={handleInputChange} id="name" label="Ime" type="text" required wrapperClass="mb-4" disabled={isLoading} />
                     </MDBCol>
                     <MDBCol col="6">
-                      <MDBInput onChange={handleInputChange} id="lastName" label="Prezime" type="text" required wrapperClass="mb-4" />
+                      <MDBInput onChange={handleInputChange} id="lastName" label="Prezime" type="text" required wrapperClass="mb-4" disabled={isLoading} />
                     </MDBCol>
                   </MDBRow>
                   
-                  <MDBInput onChange={handleInputChange} id="username" label="Korisničko ime" type="text" required wrapperClass="mb-4" />
-                  <MDBInput onChange={handleInputChange} id="email" label="Email adresa" type="email" required wrapperClass="mb-4" />
-                  <MDBInput onChange={handleInputChange} id="password" label="Lozinka" type="password" required wrapperClass="mb-4" />
-                  <MDBInput onChange={handleInputChange} id="repeatedPassword" label="Ponovite lozinku" type="password" required wrapperClass="mb-4" />
+                  <MDBInput onChange={handleInputChange} id="username" label="Korisničko ime" type="text" required wrapperClass="mb-4" disabled={isLoading} />
+                  <MDBInput onChange={handleInputChange} id="email" label="Email adresa" type="email" required wrapperClass="mb-4" disabled={isLoading} />
+                  <MDBInput onChange={handleInputChange} id="password" label="Lozinka" type="password" required wrapperClass="mb-4" disabled={isLoading} />
+                  <MDBInput onChange={handleInputChange} id="repeatedPassword" label="Ponovite lozinku" type="password" required wrapperClass="mb-4" disabled={isLoading} />
 
-                  <button type="submit" className="btn-dark-custom w-100 mb-4 py-2">
-                    KREIRAJ NALOG
+                  <button 
+                    type="submit" 
+                    className="btn-dark-custom w-100 mb-4 py-2 d-flex justify-content-center align-items-center"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? <Spinner size="sm" className="me-2" /> : 'KREIRAJ NALOG'}
                   </button>
 
                   <div className="text-center">
-                    <p className="small">Već imate nalog? <a href="/login" className="fw-bold" style={{ color: '#2B3035' }}>Prijavi se</a></p>
+                    <p className="small text-muted">
+                        Već imate nalog? <span className="fw-bold text-dark" style={{cursor:'pointer'}} onClick={() => navigate('/login')}>Prijavi se</span>
+                    </p>
                   </div>
                 </form>
               </MDBCardBody>

@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import API, { setResetTimerCallback } from './api'; // Dodat import za callback
+import React, { useEffect, useState, useCallback } from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import API, { setResetTimerCallback } from './api';
 
 import './styles/App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -17,58 +17,84 @@ import ProductivityChart from './components/ProductivityChart';
 import DeleteUser from './admin/DeleteUser';
 import AddAdmin from './admin/AddAdmin';
 
+// ... (ostali importi)
+
 function App() {
   const [username, setUsername] = useState('');
   const [userId, setUserId] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
 
-  // Funkcija koju API poziva pri svakom zahtevu da osveži sesiju na klijentu
-  const resetInactivityTimer = () => {
-    // Ovde bi išla logika za tvoj tajmer od 1 min ako ga prikazuješ
-    // console.log("Aktivnost detektovana, tajmer resetovan.");
-  };
+const fetchUser = useCallback(async () => {
+  try {
+    const response = await API.get('/User/GetUser');
+    const content = response.data;
+    
+    // Backend šalje camelCase zbog podešavanja u Program.cs
+    setUsername(content.username); 
+    setUserId(content.id); 
+    setIsAdmin(content.isAdmin || content.isAdmin === true); 
+    
+    console.log("Korisnik uspešno učitan:", content.username);
+  } catch (error) {
+    console.log("Korisnik nije prijavljen ili je sesija istekla.");
+    setUserId(-1); 
+    setUsername('');
+    setIsAdmin(false);
+  }
+}, []);
 
   useEffect(() => {
-    // Povezujemo API interceptor sa funkcijom u ovoj komponenti
-    setResetTimerCallback(resetInactivityTimer);
-
-    const fetchUser = async () => {
-      try {
-        const response = await API.get('/User/GetUser');
-        const content = response.data;
-        setUsername(content.username || content.Username);
-        setUserId(content.id || content.Id);
-        setIsAdmin(content.isAdmin || content.isadmin || false);
-      } catch (error) {
-        if (error.response && error.response.status === 401) {
-          setUserId(-1);
-          setUsername('');
-          setIsAdmin(false);
-        }
-      }
-    };
     fetchUser();
-  }, []);
+  }, [fetchUser]);
+
+ const ProtectedRoute = ({ children, adminOnly = false }) => {
+  // Ako još uvek proveravamo sesiju (userId je null)
+  if (userId === null) {
+    return <div className="loading-screen">Učitavanje...</div>;
+  }
+  
+  // Ako je fetchUser vratio grešku i postavio -1
+  if (userId === -1) {
+    return <Navigate to="/login" replace />; // Dodaj replace
+  }
+  
+  if (adminOnly && !isAdmin) {
+    return <Navigate to="/" replace />;
+  }
+  
+  return children;
+};
 
   return (
     <BrowserRouter>
-      <OurNavbar userId={userId} username={username} isAdmin={isAdmin} />
+      {/* DODATO: key={userId} forsira Navbar da se osveži čim se user uloguje */}
+      <OurNavbar key={userId} userId={userId} username={username} isAdmin={isAdmin} setUserId={setUserId} />
       
       <div className="main-content-wrapper">
-        <div className="container-fluid">
-          <Routes>
-            <Route path="/" element={<Home userId={userId} />} />
-            <Route path="/login" element={<LogIn setUsername={setUsername} setUserId={setUserId} setIsAdmin={setIsAdmin}/>} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/editprofile" element={<Edit />} /> 
-            <Route path="/tasks" element={<Tasks userId={userId} />} />
-            <Route path="/scoreboard" element={<Scoreboard />} />
-            <Route path="/productivity" element={<ProductivityChart />} />
-            <Route path="/delete-user" element={<DeleteUser />} />
-            <Route path="/add-admin" element={<AddAdmin />} />
-          </Routes>
-        </div>
+        <Routes>
+          <Route path="/" element={<Home userId={userId} />} />
+          {/* DODATO: Prosleđujemo fetchUser kao refreshUser prop */}
+          <Route path="/login" element={
+            <LogIn 
+              setUserId={setUserId} 
+              setUsername={setUsername} 
+              setIsAdmin={setIsAdmin} 
+              refreshUser={fetchUser} 
+            />
+          } />
+          <Route path="/register" element={<Register />} />
+          <Route path="/scoreboard" element={<Scoreboard username={username} />} />
+
+          <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+          <Route path="/editprofile" element={<ProtectedRoute><Edit /></ProtectedRoute>} /> 
+          <Route path="/tasks" element={<ProtectedRoute><Tasks userId={userId} /></ProtectedRoute>} />
+          <Route path="/productivity" element={<ProtectedRoute><ProductivityChart /></ProtectedRoute>} />
+
+          <Route path="/delete-user" element={<ProtectedRoute adminOnly={true}><DeleteUser /></ProtectedRoute>} />
+          <Route path="/add-admin" element={<ProtectedRoute adminOnly={true}><AddAdmin /></ProtectedRoute>} />
+
+          <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
       </div>
     </BrowserRouter>
   );

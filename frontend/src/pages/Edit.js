@@ -1,16 +1,19 @@
 import React, { useEffect, useState } from 'react';
-import { MDBContainer, MDBRow, MDBCol, MDBCard, MDBCardBody, MDBInput } from 'mdb-react-ui-kit';
+import { MDBContainer, MDBRow, MDBCol, MDBCard, MDBCardBody, MDBInput, MDBFile } from 'mdb-react-ui-kit';
 import { toast, ToastContainer } from 'react-toastify';
-import API from '../api'; // Promenjeno na API
-import '../styles/Register.css';
-import '../styles/App.css'; 
-import { Button } from 'react-bootstrap';
+import API from '../api'; 
+import '../styles/Register.css'; 
+import { Button, Spinner } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 
 function Edit() {
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(true);
+  const [selectedFile, setSelectedFile] = useState(null);
 
   const [user, setUser] = useState({
+    id: '',
     name: '',
     lastName: '',
     username: '',
@@ -19,28 +22,60 @@ function Edit() {
   });
 
   useEffect(() => {
-    // Koristimo relativnu putanju - API instanca dodaje baseURL
     API.get("/User/GetUser")
-      .then(res => setUser(res.data))
-      .catch(err => toast.error("Greška pri učitavanju podataka"));
+      .then(res => {
+        setUser(res.data);
+        setFetching(false);
+      })
+      .catch(err => {
+        toast.error("Greška pri učitavanju podataka");
+        setFetching(false);
+      });
   }, []);
 
-  const submit = (e) => {
-    e.preventDefault();
-    // PUT zahtev na relativnu putanju /User/Edit
-    API.put("/User/Edit", user)
-      .then(() => {
-        toast.success("Profil uspešno ažuriran!");
-        setTimeout(() => navigate('/profile'), 2000);
-      })
-      .catch(err => toast.error("Greška pri čuvanju"));
+  const handleFileChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+        setSelectedFile(e.target.files[0]);
+    }
   };
 
+  const submit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+
+    const formData = new FormData();
+    formData.append('id', user.id); 
+    formData.append('name', user.name);
+    formData.append('lastName', user.lastName);
+    // Email i Username ne šaljemo jer smo odlučili da su read-only
+    
+    if (selectedFile) {
+        formData.append('image', selectedFile);
+    }
+
+    try {
+      await API.put("/User/Edit", formData);
+      toast.success("Profil uspešno ažuriran!");
+      setTimeout(() => navigate('/profile'), 1500);
+    } catch (err) {
+      const errorMsg = err.response?.data?.message || err.response?.data || "Greška pri čuvanju";
+      toast.error(errorMsg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (fetching) return (
+    <div className="d-flex justify-content-center align-items-center" style={{height: '100vh'}}>
+      <Spinner animation="border" variant="primary" />
+    </div>
+  );
+
   return (
-    <div className='background-radial-gradient'>
-      <MDBContainer fluid className='p-4'>
-        <MDBRow className='justify-content-center'>
-          <MDBCol md='6' lg='5'>
+    <div className='background-radial-gradient edit-profile-page'>
+      <MDBContainer className='py-5'>
+        <MDBRow className='justify-content-center align-items-center'>
+          <MDBCol md='8' lg='6' xl='5'>
             <MDBCard className='bg-glass shadow-5'>
               <MDBCardBody className='p-5'>
                 
@@ -50,35 +85,62 @@ function Edit() {
                 </div>
 
                 <form onSubmit={submit}>
+                  <div className="mb-4">
+                    <label className="form-label text-muted small">Profilna slika</label>
+                    <MDBFile onChange={handleFileChange} />
+                  </div>
+
                   <MDBInput 
                     label='Ime' 
                     type='text' 
                     value={user.name} 
                     onChange={(e) => setUser({...user, name: e.target.value})} 
                     wrapperClass='mb-4' 
+                    required 
                   />
+
                   <MDBInput 
                     label='Prezime' 
                     type='text' 
                     value={user.lastName} 
                     onChange={(e) => setUser({...user, lastName: e.target.value})} 
                     wrapperClass='mb-4' 
+                    required 
                   />
+                  
+                  {/* Email je sada samo za čitanje */}
                   <MDBInput 
-                    label='Korisničko ime (nije promenljivo)' 
+                    label='Email' 
+                    type='email' 
+                    value={user.email} 
+                    readOnly 
+                    wrapperClass='mb-4' 
+                    className='bg-light'
+                    title="Email nije moguće promeniti." 
+                  />
+                  
+                  <MDBInput 
+                    label='Korisničko ime' 
                     type='text' 
                     value={user.username} 
                     readOnly 
                     wrapperClass='mb-4' 
-                    style={{backgroundColor: '#e9ecef'}}
+                    className='bg-light'
+                    title="Korisničko ime nije moguće promeniti." 
                   />
                   
-                  <Button 
-                    type='submit' 
-                    className='btn-dark-custom w-100 mt-2'
-                  >
-                    SAČUVAJ IZMENE
-                  </Button>
+                  <MDBRow className="g-2">
+                    <MDBCol size="6">
+                        <Button variant="light" onClick={() => navigate('/profile')} className="w-100 fw-bold border" disabled={loading}>
+                          OTKAŽI
+                        </Button>
+                    </MDBCol>
+                    <MDBCol size="6">
+                        <Button type='submit' className='btn-dark w-100 fw-bold' style={{backgroundColor: '#2B3035', border: 'none'}} disabled={loading}>
+                            {loading ? <Spinner size="sm" /> : 'SAČUVAJ'}
+                        </Button>
+                    </MDBCol>
+                  </MDBRow>
                 </form>
 
               </MDBCardBody>

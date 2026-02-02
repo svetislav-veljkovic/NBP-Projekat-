@@ -8,27 +8,17 @@ body {
   overflow-x: hidden; 
 }
 
-/* POPRAVLJENO: Centriranje sadržaja. 
-   Koristimo min-height da zauzme ceo ekran minus navbar.
+/* POPRAVLJENO: Glavni kontejner više nije Flexbox.
+   To omogućava MDBootstrap Gridu (MDBRow, MDBCol) da radi ispravno.
 */
 .main-content-wrapper {
-  padding-top: 80px; /* Visina navbara */
-  min-height: 100vh; 
-  display: flex;
-  flex-direction: column;
-  /* Ovo centrirasve unutar wrappera na sredinu ekrana */
-  justify-content: center; 
-  align-items: center;
+  padding-top: 100px; /* Malo veći razmak zbog visine navbara */
+  min-height: 100vh;
+  width: 100%;
+  display: block; /* Ključna promena */
 }
 
-/* Specijalno pravilo: Ako je unutra Home stranica (.background), 
-   nemoj je centrirati vertikalno na sredinu ekrana da ne bi bilo previše prazno gore.
-*/
-.main-content-wrapper:has(.background) {
-  justify-content: flex-start;
-}
-
-/* --- NAVBAR STILIZACIJA --- */
+/* --- NAVBAR --- */
 .navbar {
   box-shadow: 0 2px 10px rgba(0,0,0,0.2);
   padding: 0.8rem 1rem !important;
@@ -41,24 +31,13 @@ body {
   color: #ffc107 !important;
 }
 
-.nav-link {
-  font-weight: 500;
-  transition: color 0.3s ease;
-  display: flex;
-  align-items: center;
-}
-
-.nav-link:hover {
-  color: #ffc107 !important;
-}
-
-/* --- HOME STRANICA --- */
+/* --- HOME / HERO SEKCIJA --- */
 .background {
   position: relative;
   text-align: center;
   overflow: hidden;
   height: 60vh;
-  width: 100vw; /* Da bi Hero sekcija bila preko celog ekrana */
+  width: 100%;
 }
 
 .background-img {
@@ -68,17 +47,9 @@ body {
   filter: brightness(60%);
 }
 
-.animation-text {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 85%;
-}
-
-/* --- FORME (Admin, Login, Register) --- */
+/* --- FORME (Login, Register, Edit Profile) --- */
 .container1 {
-  /* margin: auto uklonjen jer Flexbox na wrapperu sada radi centriranje */
+  margin: 20px auto; /* Centriranje forme na sredinu ekrana */
   max-width: 500px;
   width: 90%;
   padding: 2.5rem;
@@ -88,8 +59,6 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  /* Dodajemo malo margine odozgo da ne bi baš dodirivalo navbar na malim ekranima */
-  margin: 20px 0; 
 }
 
 .header {
@@ -116,10 +85,13 @@ body {
   border-radius: 10px;
 }
 
+/* POPRAVLJENO: Inputi sada uvek zauzimaju 100% širine roditelja 
+*/
 .input-group-custom {
   display: flex;
   align-items: center;
-  width: 100%;
+  width: 100%; 
+  box-sizing: border-box; /* Veoma bitno da padding ne kvari širinu */
   background: #ffffff;
   border: 1px solid #ddd;
   border-radius: 10px;
@@ -138,7 +110,6 @@ body {
 }
 
 /* --- DUGMIĆI --- */
-/* Koristimo tvoju klasu .sign-in iz admin komponenti */
 .sign-in {
   width: 100%;
   background-color: #2B3035;
@@ -150,6 +121,7 @@ body {
   transition: 0.3s;
   cursor: pointer;
   text-transform: uppercase;
+  margin-top: 10px;
 }
 
 .sign-in:hover {
@@ -158,9 +130,27 @@ body {
 }
 
 .btn-delete {
-  background-color: #dc3545 !important;
+  background-color: #6c757d !important; /* Siva za 'Otkaži' */
 }
 
 .btn-delete:hover {
-  background-color: #a71d2a !important;
+  background-color: #5a6268 !important;
+}
+
+/* Kontejner za dugmiće jedan pored drugog */
+.button-container {
+  display: flex;
+  gap: 15px;
+  width: 100%;
+}
+
+/* --- RESPONSIVE POPRAVKE --- */
+@media (max-width: 768px) {
+  .container1 {
+    padding: 1.5rem;
+  }
+  
+  .header .text {
+    font-size: 24px;
+  }
 }
