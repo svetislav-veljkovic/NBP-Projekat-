@@ -4,33 +4,26 @@ import API from '../api';
 import '../styles/Scoreboard.css';
 import '../styles/App.css'; 
 
-function Scoreboard({ username }) { // Primamo trenutni username kao prop
+function Scoreboard({ username }) {
     const [leaders, setLeaders] = useState([]);
     const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    // 1. Definišemo funkciju za dovlačenje podataka
     const fetchLeaders = async () => {
         try {
             const res = await API.get("/Task/Leaderboard");
             setLeaders(res.data);
         } catch (err) {
-            console.error("Greška pri učitavanju rang liste", err);
+            console.error("Greska pri ucitavanju rang liste", err);
         } finally {
             setLoading(false);
         }
     };
 
-    // 2. Pozovemo je odmah pri učitavanju komponente
-    fetchLeaders();
-
-    // 3. Postavimo interval (npr. na svakih 30 sekundi ili 1 minut)
-    // 1 * 60 * 1000 = 1 minut    
-    const interval = setInterval(fetchLeaders, 60000);                       // OSVEZAVANJE SCOREBOARD
-
-    // 4. Čišćenje intervala kada korisnik ode sa stranice (veoma bitno!)
-    return () => clearInterval(interval);
-}, []); // Prazan niz znači da se ovo pokreće samo jednom pri mount-ovanju
+    useEffect(() => {
+        fetchLeaders();
+        const interval = setInterval(fetchLeaders, 60000); 
+        return () => clearInterval(interval);
+    }, []);
 
     return (
         <MDBContainer className="mt-5 pt-5 pb-5">
@@ -39,10 +32,10 @@ function Scoreboard({ username }) { // Primamo trenutni username kao prop
                 <div className='underline'></div>
             </div>
 
-            <MDBCard className="custom-card border-0 shadow-lg">
-                <MDBCardBody className="p-0 overflow-hidden"> 
-                    <MDBTable hover borderless align='middle' className="mb-0">
-                        <MDBTableHead dark className="bg-dark text-white">
+            <MDBCard className="custom-card border-0 shadow-lg overflow-hidden">
+                <MDBCardBody className="p-0"> 
+                    <MDBTable hover borderless align='middle' className="mb-0 custom-table">
+                        <MDBTableHead className="table-dark-header">
                             <tr>
                                 <th className="ps-4 py-3">#</th>
                                 <th className="py-3">Korisnik</th>
@@ -54,36 +47,34 @@ function Scoreboard({ username }) { // Primamo trenutni username kao prop
                             {loading ? (
                                 <tr>
                                     <td colSpan="4" className="text-center py-5">
-                                        <div className="spinner-border text-primary" role="status"></div>
+                                        <div className="spinner-border text-warning" role="status"></div>
                                     </td>
                                 </tr>
                             ) : leaders.map((user, index) => (
                                 <tr 
                                     key={index} 
-                                    className={user.key === username ? "table-warning fw-bold shadow-sm" : ""}
-                                    style={{ transition: 'all 0.3s ease' }}
+                                    className={user.key === username ? "my-rank-row" : "rank-row"}
                                 >
                                     <td className="ps-4">
-                                        <div className="d-flex align-items-center justify-content-center bg-light rounded-circle fw-bold" 
-                                             style={{ width: '35px', height: '35px', fontSize: '0.9rem' }}>
+                                        <div className={`rank-circle ${index < 3 ? `top-${index + 1}` : ''}`}>
                                             {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1}
                                         </div>
                                     </td>
                                     <td>
                                         <div className="d-flex align-items-center">
-                                            <span className="user-name">@{user.key}</span>
+                                            <span className="user-name-text">@{user.key}</span>
                                             {user.key === username && (
-                                                <MDBBadge color='info' className='ms-2'>TI</MDBBadge>
+                                                <MDBBadge color='warning' className='ms-2 text-dark'>TI</MDBBadge>
                                             )}
                                         </div>
                                     </td>
                                     <td className="text-center">
-                                        <span className={`fw-bold ${index < 3 ? 'text-primary' : 'text-dark'}`} style={{fontSize: '1.1rem'}}>
+                                        <span className="points-text">
                                             {user.value.toLocaleString()}
                                         </span>
                                     </td>
                                     <td className="text-center">
-                                        <MDBBadge pill color={index < 3 ? 'success' : 'secondary'} light>
+                                        <MDBBadge pill className={index < 3 ? 'badge-elite' : 'badge-active'}>
                                             {index < 3 ? 'Elite' : 'Active'}
                                         </MDBBadge>
                                     </td>
@@ -103,7 +94,7 @@ function Scoreboard({ username }) { // Primamo trenutni username kao prop
             <div className="mt-4 text-center">
                 <p className="text-muted small">
                     <i className="fas fa-info-circle me-1"></i> 
-                    Poeni se dodeljuju automatski nakon završetka zadatka u zavisnosti od njegovog prioriteta.
+                    Poeni se dodeljuju automatski nakon zavrsetka zadatka u zavisnosti od njegovog prioriteta.
                 </p>
             </div>
         </MDBContainer>

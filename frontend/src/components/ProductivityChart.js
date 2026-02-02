@@ -6,15 +6,14 @@ import '../styles/App.css';
 
 function ProductivityChart() {
     const [data, setData] = useState([]);
-    const [period, setPeriod] = useState('7days'); // Default period
+    const [period, setPeriod] = useState('7days');
 
     const fetchData = useCallback(async () => {
         try {
-            // Šaljemo parametar 'period' koji smo definisali u TaskControlleru/Serviceu
             const res = await Axios.get(`/Task/ProductivityData?period=${period}`);
             setData(res.data);
         } catch (err) {
-            console.error("Greška pri dohvatanju statistike:", err);
+            console.error("Greska pri dohvatanju statistike:", err);
         }
     }, [period]);
 
@@ -26,12 +25,11 @@ function ProductivityChart() {
         <MDBCard className="custom-card mt-4 border-0 shadow-sm">
             <MDBCardBody>
                 <div className="d-flex justify-content-between align-items-center mb-4">
-                    <div className="header m-0">
-                        <div className="text" style={{fontSize: '24px'}}>Produktivnost</div>
+                    <div className="header m-0 productivity-header">
+                        <div className="text">Produktivnost</div>
                         <div className="underline"></div>
                     </div>
 
-                    {/* Dugmići za promenu perioda */}
                     <MDBBtnGroup shadow='0'>
                         <MDBBtn 
                             color={period === '7days' ? 'dark' : 'light'} 
@@ -51,10 +49,10 @@ function ProductivityChart() {
                 </div>
                 
                 <p className="text-center text-muted mb-4">
-                    Prikaz završenih zadataka za period: <strong>{period === '7days' ? 'Poslednjih 7 dana' : 'Poslednjih mesec dana'}</strong>
+                    Prikaz zavrsenih zadataka za period: <strong>{period === '7days' ? 'Poslednjih 7 dana' : 'Poslednjih mesec dana'}</strong>
                 </p>
 
-                <div style={{ width: '100%', height: 350 }}>
+                <div className="chart-container">
                     <ResponsiveContainer>
                         <AreaChart data={data}>
                             <defs>

@@ -8,12 +8,12 @@ namespace backend.Helpers
 {
     public class JwtService
     {
-        // Konstanta da ne bi bilo greške u kucanju
+       
         private const string SecureKey = "SuperSigurnaLozinkaZaTodoAplikaciju2026_Projekat!";
 
         public string Generate(string id)
         {
-            // OBAVEZNO UTF8
+           
             var symmetricSecurityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(SecureKey));
             var credentials = new SigningCredentials(symmetricSecurityKey, SecurityAlgorithms.HmacSha256Signature);
 
@@ -44,8 +44,6 @@ namespace backend.Helpers
                     ValidateIssuerSigningKey = true,
                     ValidateIssuer = false,
                     ValidateAudience = false,
-                    // ClockSkew postavlja dozvoljeno odstupanje vremena. 
-                    // Ako je Zero, token ističe u sekundu tačno.
                     ClockSkew = TimeSpan.Zero
                 }, out SecurityToken validatedToken);
 
@@ -53,8 +51,7 @@ namespace backend.Helpers
             }
             catch (Exception ex)
             {
-                // Loguj ex.Message negde ako možeš da vidiš zašto tačno puca
-                // Poruka koju vidiš u Swagger-u dolazi odavde
+                
                 throw new Exception("Nevalidni podaci u tokenu.");
             }
         }

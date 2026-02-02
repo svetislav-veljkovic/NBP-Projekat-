@@ -11,23 +11,23 @@ using Microsoft.OpenApi.Models; // OBAVEZNO DODAJ OVO
 
 var builder = WebApplication.CreateBuilder(args);
 
-// --- 1. INFRASTRUKTURA ---
+
 builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
     ConnectionMultiplexer.Connect(builder.Configuration.GetConnectionString("Redis") ?? "localhost:6379"));
 builder.Services.AddSingleton<CassandraService>();
 
-// --- 2. REPOZITORIJUMI ---
+
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ITaskRepository, TaskRepository>();
 
-// --- 3. SERVISI ---
+
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ITaskService, TaskService>();
 builder.Services.AddScoped<RedisService>();
 builder.Services.AddSingleton<JwtService>();
 builder.Services.AddHttpContextAccessor();
 
-// --- 4. AUTHENTICATION ---
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -50,7 +50,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
-// --- 5. KONTROLERI ---
+
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
@@ -60,18 +60,18 @@ builder.Services.AddControllers()
 
 builder.Services.AddEndpointsApiExplorer();
 
-// --- OVDE JE ISPRAVKA ZA SWAGGER ---
+
 builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new OpenApiInfo { Title = "Backend API", Version = "v1" });
 
-    // Definisanje Cookie autentifikacije u Swagger interfejsu
+    
     options.AddSecurityDefinition("CookieAuth", new OpenApiSecurityScheme
     {
         Type = SecuritySchemeType.ApiKey,
         In = ParameterLocation.Cookie,
         Name = "jwt",
-        Description = "Prvo uradi Login ruku, pa ce ovde raditi automatski."
+        Description = "Autorizacija putem JWT tokena smestenog u HTTP-Only kolacicu"
     });
 
     options.AddSecurityRequirement(new OpenApiSecurityRequirement
@@ -86,7 +86,6 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-// --- 6. CORS ---
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp",
@@ -101,7 +100,6 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// --- 7. MIDDLEWARE REDOSLED (BITNO!) ---
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

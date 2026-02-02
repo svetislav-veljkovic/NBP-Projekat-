@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import API, { setResetTimerCallback } from './api';
+import API from './api';
 
 import './styles/App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -17,63 +17,58 @@ import ProductivityChart from './components/ProductivityChart';
 import DeleteUser from './admin/DeleteUser';
 import AddAdmin from './admin/AddAdmin';
 
-// ... (ostali importi)
-
 function App() {
   const [username, setUsername] = useState('');
   const [userId, setUserId] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
 
-const fetchUser = useCallback(async () => {
-  try {
-    const response = await API.get('/User/GetUser');
-    const content = response.data;
-    
-    // Backend šalje camelCase zbog podešavanja u Program.cs
-    setUsername(content.username); 
-    setUserId(content.id); 
-    setIsAdmin(content.isAdmin || content.isAdmin === true); 
-    
-    console.log("Korisnik uspešno učitan:", content.username);
-  } catch (error) {
-    console.log("Korisnik nije prijavljen ili je sesija istekla.");
-    setUserId(-1); 
-    setUsername('');
-    setIsAdmin(false);
-  }
-}, []);
+  const fetchUser = useCallback(async () => {
+    try {
+      const response = await API.get('/User/GetUser');
+      const content = response.data;
+      
+      setUsername(content.username); 
+      setUserId(content.id); 
+      setIsAdmin(content.isAdmin || content.isAdmin === true); 
+    } catch (error) {
+      setUserId(-1); 
+      setUsername('');
+      setIsAdmin(false);
+    }
+  }, []);
 
   useEffect(() => {
     fetchUser();
   }, [fetchUser]);
 
- const ProtectedRoute = ({ children, adminOnly = false }) => {
-  // Ako još uvek proveravamo sesiju (userId je null)
-  if (userId === null) {
-    return <div className="loading-screen">Učitavanje...</div>;
-  }
-  
-  // Ako je fetchUser vratio grešku i postavio -1
-  if (userId === -1) {
-    return <Navigate to="/login" replace />; // Dodaj replace
-  }
-  
-  if (adminOnly && !isAdmin) {
-    return <Navigate to="/" replace />;
-  }
-  
-  return children;
-};
+  const ProtectedRoute = ({ children, adminOnly = false }) => {
+    if (userId === null) {
+      return (
+        <div className="loading-screen">
+          <div className="spinner-border text-warning" role="status"></div>
+          <span className="loading-text">Učitavanje...</span>
+        </div>
+      );
+    }
+    
+    if (userId === -1) {
+      return <Navigate to="/login" replace />;
+    }
+    
+    if (adminOnly && !isAdmin) {
+      return <Navigate to="/" replace />;
+    }
+    
+    return children;
+  };
 
   return (
     <BrowserRouter>
-      {/* DODATO: key={userId} forsira Navbar da se osveži čim se user uloguje */}
       <OurNavbar key={userId} userId={userId} username={username} isAdmin={isAdmin} setUserId={setUserId} />
       
       <div className="main-content-wrapper">
         <Routes>
           <Route path="/" element={<Home userId={userId} />} />
-          {/* DODATO: Prosleđujemo fetchUser kao refreshUser prop */}
           <Route path="/login" element={
             <LogIn 
               setUserId={setUserId} 

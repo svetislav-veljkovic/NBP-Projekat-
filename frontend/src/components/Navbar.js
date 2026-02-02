@@ -15,31 +15,23 @@ function OurNavbar({ userId, username, isAdmin }) {
     } catch (error) {
       console.error("Logout error", error);
     } finally {
-      // Čistimo tajmer pre nego što napustimo stranicu
       if (logoutTimerRef.current) clearTimeout(logoutTimerRef.current);
       window.location.href = '/login';
     }
   }, []);
 
-  // DEFINIŠEMO resetTimer funkciju (ovo ti je falilo)
   const resetTimer = useCallback(() => {
     if (logoutTimerRef.current) clearTimeout(logoutTimerRef.current);
     
-    // Ako je korisnik ulogovan, postavljamo tajmer na 30 minuta
-    // 30 minuta * 60 sekundi * 1000 milisekundi
     if (userId && userId !== -1) {
       logoutTimerRef.current = setTimeout(() => {
-        
         logout();
-      }, 5 * 60 * 1000);                               // TIMER ZA TTL SESIJU 
+      }, 30 * 60 * 1000); 
     }
   }, [userId, logout]);
 
   useEffect(() => {
-    // Povezujemo API callback sa našom funkcijom
     setResetTimerCallback(resetTimer);
-    
-    // Inicijalno pokrećemo tajmer
     resetTimer();
 
     return () => {
@@ -51,7 +43,7 @@ function OurNavbar({ userId, username, isAdmin }) {
   return (
     <Navbar bg="dark" variant="dark" collapseOnSelect expand="lg" fixed="top" className="navbar shadow-sm">
       <Container>
-        <Navbar.Brand href="/" className="fw-bold text-warning">🚀 To Do App</Navbar.Brand>
+        <Navbar.Brand href="/" className="fw-bold brand-logo">🚀 To Do App</Navbar.Brand>
         <Navbar.Toggle aria-controls="responsive-navbar-nav" />
         <Navbar.Collapse id="responsive-navbar-nav">
           <Nav className="me-auto">
@@ -61,9 +53,9 @@ function OurNavbar({ userId, username, isAdmin }) {
                 <Nav.Link href="/productivity"><IonIcon icon={statsChart} /> Statistika</Nav.Link>
                 <Nav.Link href="/scoreboard"><IonIcon icon={trophyOutline} /> Rang Lista</Nav.Link>
                 {isAdmin && (
-                  <NavDropdown title={<span className="text-warning fw-bold">Admin</span>} id="admin-nav">
+                  <NavDropdown title={<span className="admin-nav-title">Admin</span>} id="admin-nav">
                     <NavDropdown.Item href="/add-admin">Dodaj Admina</NavDropdown.Item>
-                    <NavDropdown.Item href="/delete-user" className="text-danger">Obriši Korisnika</NavDropdown.Item>
+                    <NavDropdown.Item href="/delete-user" className="text-danger">Obrisi Korisnika</NavDropdown.Item>
                   </NavDropdown>
                 )}
               </>
@@ -76,11 +68,11 @@ function OurNavbar({ userId, username, isAdmin }) {
                 <Nav.Link href="/register">Registracija</Nav.Link>
               </>
             ) : (
-              <NavDropdown title={<><IonIcon icon={person} /> {username}</>} id="user-nav" align="end">
+              <NavDropdown title={<span className="user-nav-title"><IonIcon icon={person} /> {username}</span>} id="user-nav" align="end">
                 <NavDropdown.Item href="/profile">Profil</NavDropdown.Item>
-                <NavDropdown.Item href="/editprofile">Podešavanja</NavDropdown.Item>
+                <NavDropdown.Item href="/editprofile">Podesavanja</NavDropdown.Item>
                 <NavDropdown.Divider />
-                <NavDropdown.Item onClick={logout} className="text-danger fw-bold">Odjavi se</NavDropdown.Item>
+                <NavDropdown.Item onClick={logout} className="logout-item">Odjavi se</NavDropdown.Item>
               </NavDropdown>
             )}
           </Nav>

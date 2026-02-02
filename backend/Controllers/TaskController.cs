@@ -50,7 +50,7 @@ namespace backend.Controllers
             try
             {
                 var user = await ValidateSessionAndGetUser();
-                // Ovde prosleđujemo status i sortBy servisu
+                
                 var tasks = await _taskService.GetFilteredTasks(user.Id, status, sortBy);
                 return Ok(tasks);
             }
@@ -64,7 +64,7 @@ namespace backend.Controllers
             {
                 var user = await ValidateSessionAndGetUser();
                 await _taskService.UpdateTask(user.Id, taskId, taskDto);
-                return Ok(new { message = "Zadatak uspešno izmenjen." });
+                return Ok(new { message = "Zadatak uspesno izmenjen." });
             }
             catch (UnauthorizedAccessException) { return Unauthorized(); }
             catch (Exception e) { return BadRequest(new { message = e.Message }); }
@@ -78,7 +78,7 @@ namespace backend.Controllers
                 var user = await ValidateSessionAndGetUser();
                 await _taskService.DeleteTask(user.Id, taskId);
 
-                // Sada će ova metoda raditi jer smo je vratili u RedisService
+               
                 await _redisService.RemoveTaskFromRedis(user.Id.ToString(), taskId.ToString());
 
                 return Ok(new { message = "Zadatak obrisan." });
@@ -97,7 +97,7 @@ namespace backend.Controllers
                 
                 await _taskService.CompleteTask(user.Id, taskId, user.Username!);
 
-                return Ok(new { message = "Zadatak uspešno završen i poeni su dodeljeni!" });
+                return Ok(new { message = "Zadatak uspesno zavrsen i poeni su dodeljeni!" });
             }
             catch (UnauthorizedAccessException) { return Unauthorized(); }
             catch (Exception e)
@@ -111,12 +111,12 @@ namespace backend.Controllers
         {
             try
             {
-                // Leaderboard je javni, ne mora ValidateSession osim ako ne želiš
+                
                 var topUsers = await _redisService.GetTopUsers(10);
                 var result = topUsers.Select(x => new { key = x.Key, value = x.Value });
                 return Ok(result);
             }
-            catch (Exception) { return BadRequest(new { message = "Greška pri učitavanju." }); }
+            catch (Exception) { return BadRequest(new { message = "Greska pri ucitavanju." }); }
         }
 
         [HttpGet("ProductivityData")]
@@ -129,23 +129,24 @@ namespace backend.Controllers
                 return Ok(data);
             }
             catch (UnauthorizedAccessException) { return Unauthorized(); }
-            catch (Exception) { return BadRequest(new { message = "Greška pri učitavanju dijagrama." }); }
+            catch (Exception) { return BadRequest(new { message = "Greska pri ucitavanju dijagrama." }); }
         }
 
-        // --- POMOĆNA METODA SA SLIDING EXPIRATION ---
+
+       
         private async Task<User> ValidateSessionAndGetUser()
         {
             var jwt = Request.Cookies["jwt"];
             if (string.IsNullOrEmpty(jwt)) throw new UnauthorizedAccessException();
 
-            // Provera TTL sesije (Key = Token)
+           
             if (!await _redisService.IsSessionActive(jwt))
                 throw new UnauthorizedAccessException("Sesija istekla.");
 
             var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userIdStr)) throw new UnauthorizedAccessException();
 
-            // Sliding Expiration - produži sesiju za 30 min pri svakoj akciji
+            
             await _redisService.SaveUserSession(jwt, userIdStr, TimeSpan.FromMinutes(30));
 
             return await _userService.GetUserById(Guid.Parse(userIdStr));

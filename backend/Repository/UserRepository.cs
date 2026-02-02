@@ -27,7 +27,7 @@ namespace backend.Repository
 
         public async Task<User> GetUserByUsername(string username)
         {
-            // Dodajemo ALLOW FILTERING ako username nije indeksiran, mada je bolje imati indeks
+          
             return await _mapper.FirstOrDefaultAsync<User>("SELECT * FROM user WHERE username = ? ALLOW FILTERING", username);
         }
 
@@ -64,16 +64,16 @@ namespace backend.Repository
             return await _mapper.FetchAsync<User>("SELECT * FROM user");
         }
 
-        // --- ISPRAVLJENE METODE ZA RAD SA ID-EM ---
+       
 
         public async Task DeleteByUsername(string username)
         {
-            // 1. Prvo moramo dohvatiti korisnika da bismo saznali njegov ID (Partition Key)
+            
             var user = await GetUserByUsername(username);
 
             if (user != null)
             {
-                // 2. Sada brišemo preko ID-a što Cassandra dozvoljava
+                
                 var cql = "DELETE FROM user WHERE id = ?";
                 await _session.ExecuteAsync(new SimpleStatement(cql, user.Id));
             }
@@ -85,12 +85,12 @@ namespace backend.Repository
 
         public async Task UpdateAdminStatus(string username, bool isAdmin)
         {
-            // 1. Prvo dohvatamo korisnika zbog ID-a
+          
             var user = await GetUserByUsername(username);
 
             if (user != null)
             {
-                // 2. Update radimo preko ID-a (Primary Key)
+               
                 var cql = "UPDATE user SET isadmin = ? WHERE id = ?";
                 await _session.ExecuteAsync(new SimpleStatement(cql, isAdmin, user.Id));
             }

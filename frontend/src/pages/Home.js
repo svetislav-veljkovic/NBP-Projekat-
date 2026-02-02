@@ -9,31 +9,30 @@ function Home() {
   const [bestUsers, setBestUsers] = useState([]);
   const [loading, setLoading] = useState(true);
 
-useEffect(() => {
+  useEffect(() => {
     const fetchLeaders = (isInitialLoad = false) => {
-        if (isInitialLoad) setLoading(true);
-        API.get("/Task/Leaderboard")
-            .then(res => {
-                setBestUsers(res.data.slice(0, 4));
-            })
-            .catch(err => console.error('Greška:', err))
-            .finally(() => {
-                if (isInitialLoad) setLoading(false);
-            });
+      if (isInitialLoad) setLoading(true);
+      API.get("/Task/Leaderboard")
+        .then(res => {
+          setBestUsers(res.data.slice(0, 4));
+        })
+        .catch(err => console.error('Greška:', err))
+        .finally(() => {
+          if (isInitialLoad) setLoading(false);
+        });
     };
 
     fetchLeaders(true);
-    const interval = setInterval(() => fetchLeaders(false), 60000);           // OSVEZAVANJE SCOREBOARD
+    const interval = setInterval(() => fetchLeaders(false), 60000);
 
     return () => clearInterval(interval);
-}, []);
+  }, []);
 
-  // Funkcija za boju trofeja na osnovu ranga
   const getRankColor = (index) => {
     switch(index) {
-      case 0: return '#FFD700'; // Zlato
-      case 1: return '#C0C0C0'; // Srebro
-      case 2: return '#CD7F32'; // Bronza
+      case 0: return '#FFD700'; 
+      case 1: return '#C0C0C0'; 
+      case 2: return '#CD7F32'; 
       default: return '#2B3035';
     }
   };
@@ -65,13 +64,14 @@ useEffect(() => {
           {loading ? (
             <div className="text-center">
               <div className="spinner-border text-primary" role="status"></div>
-              <p className="mt-2 text-muted">Učitavanje šampiona...</p>
+              <p className="mt-2 text-muted">Ucitavanje najboljih korisnika ...</p>
             </div>
           ) : bestUsers.length > 0 ? (
             bestUsers.map((user, index) => (
               <MDBCol md="3" sm="6" key={index} className="mb-4">
-                <MDBCard className='text-center custom-card border-0 shadow-sm h-100' 
-                         style={{ transform: index === 0 ? 'scale(1.05)' : 'none' }}>
+                <MDBCard 
+                  className={`text-center custom-card border-0 shadow-sm h-100 leaderboard-card-main ${index === 0 ? 'top-user-scale' : ''}`}
+                >
                   <MDBCardBody className="p-4">
                     <MDBIcon 
                       fas 
@@ -83,8 +83,10 @@ useEffect(() => {
                     <h5 className="fw-bold mb-1">@{user.key}</h5>
                     <p className='text-muted small mb-3'>Rank #{index + 1}</p>
                     
-                    <div className='badge bg-dark text-warning px-3 py-2' 
-                         style={{ fontSize: '1rem', borderRadius: '8px', border: `1px solid ${getRankColor(index)}` }}>
+                    <div 
+                      className='points-badge-home' 
+                      style={{ border: `1px solid ${getRankColor(index)}` }}
+                    >
                       {user.value} <small>pts</small>
                     </div>
                   </MDBCardBody>
@@ -94,7 +96,7 @@ useEffect(() => {
           ) : (
             <div className="text-center py-5">
               <MDBIcon far icon="frown" size="3x" className="text-muted mb-3" />
-              <p className='text-muted'>Još uvek nema podataka na rang listi. Budi prvi!</p>
+              <p className='text-muted'>Jos uvek nema podataka na rang listi. Budi prvi!</p>
             </div>
           )}
         </MDBRow>

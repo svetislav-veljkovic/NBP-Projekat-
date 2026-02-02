@@ -10,7 +10,7 @@ namespace backend.Services.IServices
         Task<User> Register(UserRegisterDTO userDto);
         Task<string> Login(string email, string password);
         Task<User> GetUser(string jwt);
-        Task<User> GetUserById(Guid id); // Usklađeno sa nazivom u kontroleru
+        Task<User> GetUserById(Guid id); 
         Task<User> GetUserByEmail(string email);
         Task UpdateProfile(UserUpdateDTO userDto);
         Task MakeUserAdmin(string username);

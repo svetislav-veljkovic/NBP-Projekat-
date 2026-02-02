@@ -13,10 +13,11 @@ function Profile() {
     name: '',
     lastName: '',
     createdAt: null,
-    isAdmin: false
+    isAdmin: false,
+    profilePicture: ''
   });
   
-  const [score, setScore] = useState(0); // NOVO: Poeni iz Redisa
+  const [score, setScore] = useState(0);
 
   useEffect(() => {
     const fetchMyProfile = async () => {
@@ -24,13 +25,12 @@ function Profile() {
         const response = await API.get('/User/GetUser');
         setUser(response.data);
         
-        // NOVO: Dohvatanje poena sa Leaderboard-a
         const lbResponse = await API.get('/Task/Leaderboard');
         const myData = lbResponse.data.find(x => x.key === response.data.username);
         if (myData) setScore(myData.value);
         
       } catch (error) {
-        console.error('Greška pri dohvatanju podataka:', error);
+        console.error('Greska pri dohvatanju podataka:', error);
       }
     };
 
@@ -39,7 +39,7 @@ function Profile() {
 
   const memberSince = user.createdAt 
     ? new Date(user.createdAt).toLocaleDateString('sr-RS') 
-    : 'Učitavanje...';
+    : 'Ucitavanje...';
 
   return (
     <div className="profile-wrapper">
@@ -48,77 +48,74 @@ function Profile() {
           <MDBCol lg="9" xl="8">
             <MDBCard className="custom-card overflow-hidden border-0 shadow-lg">
               <MDBRow className="g-0">
-                {/* Leva strana */}
+                {}
                 <MDBCol md="4" className="gradient-custom-dark text-center text-white d-flex flex-column align-items-center justify-content-center p-4">
                   <MDBCardImage 
-                          src={
-                          user.profilePicture && user.profilePicture !== 'default.png' 
-                            ? `https://localhost:7248/uploads/${user.profilePicture}` 
-                            : profileIcon
-                        }
-                        alt="Avatar" 
-                        className="mb-3 profile-avatar shadow"
-                        style={{ width: '100px', height: '100px', borderRadius: '50%', objectFit: 'cover' }} 
-                      />
+                    src={
+                      user.profilePicture && user.profilePicture !== 'default.png' 
+                        ? `https://localhost:7248/uploads/${user.profilePicture}` 
+                        : profileIcon
+                    }
+                    alt="Avatar" 
+                    className="mb-3 profile-avatar"
+                  />
                   <MDBTypography tag="h4" className="fw-bold mb-1">
                     {user.name && user.lastName ? `${user.name} ${user.lastName}` : user.username}
                   </MDBTypography>
                   
                   <div className="mb-3">
                     {user.isAdmin ? (
-                        <MDBBadge pill color='warning' className='text-dark'>Administrator</MDBBadge>
+                      <MDBBadge pill color='warning' className='text-dark'>Administrator</MDBBadge>
                     ) : (
-                        <MDBBadge pill color='light' className='text-dark'>Korisnik</MDBBadge>
+                      <MDBBadge pill color='light' className='text-dark'>Korisnik</MDBBadge>
                     )}
                   </div>
 
-                  {/* NOVO: Prikaz poena direktno iz Redisa */}
-                  <div className="bg-white text-dark rounded-3 px-3 py-2 shadow-sm">
-                    <small className="d-block text-uppercase fw-bold" style={{fontSize: '10px'}}>Ukupno poena</small>
-                    <span className="h4 fw-bold text-primary">{score}</span>
+                 
+                  <div className="score-box">
+                    <small className="score-label">Ukupno poena</small>
+                    <span className="score-value">{score}</span>
                   </div>
                 </MDBCol>
 
-                {/* Desna strana */}
+               
                 <MDBCol md="8">
                   <MDBCardBody className="p-4 p-lg-5">
-                    <div className="d-flex align-items-center mb-4">
-                        <div className="header m-0" style={{alignItems: 'flex-start'}}>
-                            <div className="text" style={{fontSize: '24px'}}>Informacije</div>
-                            <div className="underline" style={{margin: '0', width: '40px'}}></div>
-                        </div>
+                    <div className="header profile-section-header">
+                      <div className="text small-header">Informacije</div>
+                      <div className="underline short-underline"></div>
                     </div>
 
                     <MDBRow className="pt-1">
                       <MDBCol size="6" className="mb-4">
-                        <MDBTypography tag="h6" className="fw-bold text-uppercase" style={{fontSize: '12px'}}>Email</MDBTypography>
+                        <MDBTypography tag="h6" className="info-label">Email</MDBTypography>
                         <MDBCardText className="text-muted">{user.email || 'Učitavanje...'}</MDBCardText>
                       </MDBCol>
                       <MDBCol size="6" className="mb-4">
-                        <MDBTypography tag="h6" className="fw-bold text-uppercase" style={{fontSize: '12px'}}>Username</MDBTypography>
-                        <MDBCardText className="text-primary fw-bold">@{user.username}</MDBCardText>
+                        <MDBTypography tag="h6" className="info-label">Username</MDBTypography>
+                        <MDBCardText className="text-primary-custom">@{user.username}</MDBCardText>
                       </MDBCol>
                     </MDBRow>
 
-                    <div className="header m-0 mb-4" style={{alignItems: 'flex-start'}}>
-                        <div className="text" style={{fontSize: '22px'}}>Lični podaci</div>
-                        <div className="underline" style={{margin: '0', width: '30px'}}></div>
+                    <div className="header profile-section-header">
+                      <div className="text small-header">Licni podaci</div>
+                      <div className="underline short-underline"></div>
                     </div>
 
                     <MDBRow className="pt-1">
                       <MDBCol size="6" className="mb-4">
-                        <MDBTypography tag="h6" className="fw-bold text-uppercase" style={{fontSize: '12px'}}>Ime</MDBTypography>
+                        <MDBTypography tag="h6" className="info-label">Ime</MDBTypography>
                         <MDBCardText className="text-muted">{user.name || '/'}</MDBCardText>
                       </MDBCol>
                       <MDBCol size="6" className="mb-4">
-                        <MDBTypography tag="h6" className="fw-bold text-uppercase" style={{fontSize: '12px'}}>Prezime</MDBTypography>
+                        <MDBTypography tag="h6" className="info-label">Prezime</MDBTypography>
                         <MDBCardText className="text-muted">{user.lastName || '/'}</MDBCardText>
                       </MDBCol>
                     </MDBRow>
 
-                    <div className="mt-4 pt-2 border-top d-flex justify-content-between">
+                    <div className="profile-footer">
                        <small className="text-muted">Status: Aktivan</small>
-                       <small className="text-muted italic">Član od: {memberSince}</small>
+                       <small className="text-muted italic">Clan od: {memberSince}</small>
                     </div>
                   </MDBCardBody>
                 </MDBCol>

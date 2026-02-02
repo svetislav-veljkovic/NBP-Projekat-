@@ -1,62 +1,70 @@
-/* Stilovi za tabelu */
-.custom-table thead {
-    background-color: #2B3035;
-    color: white;
-}
 
-.custom-table thead th {
-    padding: 18px !important;
-    font-weight: 600;
+.table-dark-header {
+    background-color: #2B3035 !important;
+    color: #ffc107 !important; 
     text-transform: uppercase;
-    font-size: 0.9rem;
     letter-spacing: 1px;
 }
 
-.custom-table tbody tr {
-    transition: all 0.2s ease;
-    border-bottom: 1px solid #eee;
+.table-dark-header th {
+    border: none !important;
+    font-weight: 700 !important;
 }
 
-.user-name {
+
+.rank-row {
+    transition: 0.3s;
+    border-bottom: 1px solid #f1f1f1;
+}
+
+.my-rank-row {
+    background-color: rgba(255, 193, 7, 0.1) !important; 
+    font-weight: 700;
+    border-left: 5px solid #ffc107;
+}
+
+.rank-row:hover {
+    background-color: #f8f9fa;
+}
+
+
+.rank-circle {
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #f0f0f0;
+    font-weight: 800;
+    font-size: 0.9rem;
+    color: #2b3035;
+}
+
+.top-1 { background: linear-gradient(135deg, #fff3b0 0%, #ffc107 100%); border: 1px solid #ffc107; }
+.top-2 { background: #e9ecef; border: 1px solid #dee2e6; }
+.top-3 { background: #fae5d3; border: 1px solid #f5cba7; }
+
+.user-name-text {
     font-weight: 600;
-    color: #2B3035;
-    font-size: 1.1rem;
+    color: #2b3035;
 }
 
-/* Badge za poene */
-.points-badge {
-    background-color: #2B3035;
-    color: white;
-    padding: 8px 16px;
-    border-radius: 50px;
-    font-weight: bold;
-    display: inline-block;
-    min-width: 80px;
-}
-
-/* Posebni stilovi za TOP 3 mesta */
-.top-rank-1 {
-    background-color: rgba(255, 215, 0, 0.05) !important; /* Blago zlatna pozadina */
-}
-
-.top-rank-1 .rank-badge {
-    font-size: 1.5rem;
-}
-
-.gold-glow {
-    box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
-    border: 1px solid #ffc107;
-}
-
-/* Badge za rang */
-.rank-badge {
+.points-text {
     font-weight: 800;
     font-size: 1.1rem;
-    color: #6c757d;
+    color: #2b3035;
 }
 
-/* Hover efekat na redove */
-.custom-table tbody tr:hover {
-    background-color: #f1f3f5 !important;
-    transform: scale(1.002);
+
+.badge-elite {
+    background-color: #2b3035 !important;
+    color: #ffc107 !important;
+    padding: 6px 12px !important;
+}
+
+.badge-active {
+    background-color: #6c757d !important;
+    color: white !important;
+    padding: 6px 12px !important;
 }

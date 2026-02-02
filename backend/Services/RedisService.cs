@@ -16,10 +16,10 @@ namespace backend.Services
             _db = redis.GetDatabase();
         }
 
-        // --- 1. TTL SESIJA (Key-Value String) ---
+     
         public async Task SaveUserSession(string token, string userId, TimeSpan expiry)
         {
-            // Key: session:jwt_token, Value: userId
+            
             await _db.StringSetAsync($"session:{token}", userId, expiry);
         }
 
@@ -33,7 +33,7 @@ namespace backend.Services
             await _db.KeyDeleteAsync($"session:{token}");
         }
 
-        // --- 2. DODAVANJE KORISNIKA (HASH) ---
+        
         public async Task SaveUserHash(string userId, string? username, double score = 0)
         {
             string safeUsername = username ?? "UnknownUser";
@@ -45,7 +45,7 @@ namespace backend.Services
             await _db.HashSetAsync($"user:{userId}", hashEntries);
         }
 
-        // --- 3. DODAVANJE ZADATAKA (HASH + SET) ---
+       
         public async Task CacheTaskData(string taskId, string title, string description, string priority, DateTime? dueDate)
         {
             var hashEntries = new HashEntry[]
@@ -60,47 +60,40 @@ namespace backend.Services
 
         public async Task AddTaskToUserSet(string userId, string taskId)
         {
-            // Set koji pamti vezu korisnik -> zadaci
+          
             await _db.SetAddAsync($"user_tasks:{userId}", taskId);
         }
 
-        // --- 4. CHECK-OFF OPERACIJA (Brisanje + Scoreboard) ---
+      
         public async Task CompleteTaskCheckOff(string userId, string taskId, string username, int weight)
         {
-            // 1. Standardne operacije
+            
             await _db.SetRemoveAsync($"user_tasks:{userId}", taskId);
             await _db.KeyDeleteAsync($"task:{taskId}");
             await _db.SortedSetIncrementAsync(ScoreboardKey, username, weight);
             await _db.HashIncrementAsync($"user:{userId}", "score", weight);
 
-            // 2. DINAMIČKI TTL (Reset u ponedeljak 00:00 po srpskom vremenu)
+         
             var currentTtl = await _db.KeyTimeToLiveAsync(ScoreboardKey);
 
             if (currentTtl == null || currentTtl.Value.TotalSeconds < 0)
             {
-                // Dobijamo tačno vreme u Srbiji (sa uračunatim letnjim/zimskim računanjem)
-                var serbiaZone = TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time");
-                DateTime naseVreme = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, serbiaZone);
 
-                // Izračunavamo dane do ponedeljka
-                int daysUntilMonday = ((int)DayOfWeek.Monday - (int)naseVreme.DayOfWeek + 7) % 7;
+                DateTime sadUtc = DateTime.UtcNow;
+                int daysUntilMonday = ((int)DayOfWeek.Monday - (int)sadUtc.DayOfWeek + 7) % 7;
                 if (daysUntilMonday == 0) daysUntilMonday = 7;
+                DateTime sledeciPonedeljakUtc = sadUtc.AddDays(daysUntilMonday).Date;
 
-                // Ciljamo ponedeljak 00:00:00
-                DateTime sledeciPonedeljak = naseVreme.AddDays(daysUntilMonday).Date;
-
-                // Razlika između "sledećeg ponedeljka u ponoć" i "sada"
-                TimeSpan vremeDoReseta = sledeciPonedeljak - naseVreme;
-
+                TimeSpan vremeDoReseta = sledeciPonedeljakUtc - sadUtc;
 
                 // TimeSpan vremeDoReseta = TimeSpan.FromMinutes(1);                                  ZA TESTRIRANJE TTL SCOREBOARD 
-               
+
                 await _db.KeyExpireAsync(ScoreboardKey, vremeDoReseta);
             }
         }
         
 
-        // Metoda za dobavljanje zadataka iz keša (za brzi pristup profilu)
+      
         public async Task<List<Dictionary<string, string>>> GetTasksFromRedis(string userId)
         {
             var taskIds = await _db.SetMembersAsync($"user_tasks:{userId}");
@@ -124,10 +117,10 @@ namespace backend.Services
             return tasksList;
         }
 
-        // --- 5. SCOREBOARD (SORTED SET) ---
+   
         public async Task<List<KeyValuePair<string, double>>> GetTopUsers(int count = 5)
         {
-            // Vraća Top 5 korisnika (Sorted Set - ZREVRANGE)
+           
             var results = await _db.SortedSetRangeByRankWithScoresAsync(ScoreboardKey, 0, count - 1, Order.Descending);
             return results.Select(x => new KeyValuePair<string, double>(x.Element!, x.Score)).ToList();
         }
@@ -140,7 +133,7 @@ namespace backend.Services
         }
 
 
-        // Dodaj ovo unutar RedisService klase
+     
         public async Task<IEnumerable<string>> GetUserTaskIds(string userId)
         {
             var members = await _db.SetMembersAsync($"user_tasks:{userId}");
@@ -155,29 +148,25 @@ namespace backend.Services
             return entries.ToDictionary(x => x.Name.ToString(), x => x.Value.ToString());
         }
 
-        // --- 6. BRISANJE SVIH PODATAKA KORISNIKA IZ REDISA ---
+        
 
         public async Task RemoveUserAllData(string userId, string username)
         {
-            // 1. Brišemo Hash sa podacima korisnika (user:ID)
+           
             await _db.KeyDeleteAsync($"user:{userId}");
 
-            // 2. Brišemo Set sa ID-jevima zadataka (user_tasks:ID)
-            // Prvo moramo obrisati svaki pojedinačni Task Hash da ne ostanu "siročići"
+       
             var taskIds = await _db.SetMembersAsync($"user_tasks:{userId}");
             foreach (var taskId in taskIds)
             {
                 await _db.KeyDeleteAsync($"task:{taskId}");
             }
-            // Zatim brišemo sam Set
+            
             await _db.KeyDeleteAsync($"user_tasks:{userId}");
 
-            // 3. Brišemo korisnika sa Leaderboard-a (Sorted Set)
+           
             await _db.SortedSetRemoveAsync(ScoreboardKey, username);
 
-            // 4. Brišemo sve sesije (opciono, ako koristiš prefiks session:*)
-            // Napomena: Za ovo bi nam trebao SCAN, ali pošto admin briše preko ID-a, 
-            // sesiju obično brišemo direktno preko tokena u Controlleru ili ostavimo da istekne TTL.
         }
     }
 }

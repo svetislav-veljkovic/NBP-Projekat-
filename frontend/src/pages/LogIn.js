@@ -13,52 +13,40 @@ function LogIn({ setUserId, setUsername, setIsAdmin, refreshUser }) {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState({ email: "", password: "" });
 
-async function submit(e) {
-  e.preventDefault();
-  setLoading(true);
+  async function submit(e) {
+    e.preventDefault();
+    setLoading(true);
 
-  try {
-    // 1. Slanje zahteva
-    const response = await API.post('/User/Login', {
-      email: data.email.toLowerCase().trim(),
-      password: data.password
-    });
+    try {
+      const response = await API.post('/User/Login', {
+        email: data.email.toLowerCase().trim(),
+        password: data.password
+      });
 
-    // 2. Provera strukture podataka (Backend šalje camelCase zbog JsonSerializerOptions)
-    const user = response.data;
-    
-    // Čuvanje osnovnih podataka odmah u state-u LogIn komponente
-    // Koristimo i velika i mala slova za svaki slučaj, mada bi camelCase trebao biti standard
-    const id = user.id || user.Id;
-    const usernameVal = user.username || user.Username;
-    const adminVal = user.isAdmin || user.IsAdmin || false;
+      const user = response.data;
+      const id = user.id || user.Id;
+      const usernameVal = user.username || user.Username;
+      const adminVal = user.isAdmin || user.IsAdmin || false;
 
-    toast.success(`Dobrodošao, ${usernameVal}!`);
+      toast.success(`Dobrodošao, ${usernameVal}!`);
 
-    // 3. Umesto setTimeout, koristimo asinhroni refresh i await
-    // refreshUser() će pozvati /api/User/GetUser koji sada ima kolačić
-    if (refreshUser) {
-      await refreshUser(); 
+      if (refreshUser) {
+        await refreshUser(); 
+      }
+
+      setUserId(id);
+      setUsername(usernameVal);
+      setIsAdmin(adminVal);
+      navigate('/');
+
+    } catch (error) {
+      console.error("Login fail detail:", error.response);
+      const errorMsg = error.response?.data?.message || error.response?.data || "Pogresan email ili lozinka.";
+      toast.error(errorMsg);
+    } finally {
+      setLoading(false);
     }
-
-    // Ažuriramo globalno stanje u App.js preko prosleđenih funkcija
-    setUserId(id);
-    setUsername(usernameVal);
-    setIsAdmin(adminVal);
-
-    // 4. Navigacija nakon što je sve spremno
-    navigate('/');
-
-  } catch (error) {
-    console.error("Login fail detail:", error.response);
-    
-    // Hvatanje specifične poruke sa backenda (npr. "Nevalidni podaci u tokenu")
-    const errorMsg = error.response?.data?.message || error.response?.data || "Pogrešan email ili lozinka.";
-    toast.error(errorMsg);
-  } finally {
-    setLoading(false);
   }
-}
 
   function handle(e) {
     setData({ ...data, [e.target.id]: e.target.value });
@@ -72,9 +60,9 @@ async function submit(e) {
           <div className='underline'></div>
         </div>
         <div className='inputs'>
-          <div className='input-group-custom mb-3'>
-            <div className="d-flex align-items-center bg-light px-3 rounded-3 border">
-              <IonIcon icon={mail} />
+          <div className='input-group-custom'>
+            <div className="input-wrapper">
+              <IonIcon icon={mail} className="login-icon" />
               <input 
                 onChange={handle} 
                 id="email" 
@@ -83,13 +71,12 @@ async function submit(e) {
                 placeholder='Email' 
                 required 
                 disabled={loading} 
-                style={{background: 'transparent', border: 'none', outline: 'none', width: '100%', padding: '12px'}} 
               />
             </div>
           </div>
-          <div className='input-group-custom mb-3'>
-            <div className="d-flex align-items-center bg-light px-3 rounded-3 border">
-              <IonIcon icon={lockClosed} />
+          <div className='input-group-custom'>
+            <div className="input-wrapper">
+              <IonIcon icon={lockClosed} className="login-icon" />
               <input 
                 onChange={handle} 
                 id="password" 
@@ -98,12 +85,11 @@ async function submit(e) {
                 placeholder='Lozinka' 
                 required 
                 disabled={loading} 
-                style={{background: 'transparent', border: 'none', outline: 'none', width: '100%', padding: '12px'}} 
               />
             </div>
           </div>
         </div>
-        <button type="submit" className='sign-in' disabled={loading}>
+        <button type="submit" className={`sign-in ${loading ? 'loading' : ''}`} disabled={loading}>
           {loading ? <Spinner animation="border" size="sm" /> : "PRIJAVI SE"}
         </button>
       </form>

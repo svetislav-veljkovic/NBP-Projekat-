@@ -2,30 +2,63 @@
     background: #ffffff;
     border-radius: 15px !important;
     transition: all 0.3s ease;
-    border-left: 5px solid #2B3035 !important;
+    border-left: 6px solid #2b3035 !important;
     animation: slideIn 0.4s ease-out;
 }
 
 .task-card:hover {
     transform: translateY(-8px);
-    box-shadow: 0 12px 25px rgba(0,0,0,0.1) !important;
+    box-shadow: 0 15px 30px rgba(0,0,0,0.12) !important;
+    border-left-color: #ffc107 !important; 
+}
+
+
+.complete-btn {
+    width: 100%;
+    background-color: transparent;
+    border: 2px solid #2b3035;
+    color: #2b3035;
+    font-weight: 700;
+    padding: 8px;
+    border-radius: 50px;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    transition: 0.3s;
+}
+
+.complete-btn:hover {
+    background-color: #2b3035;
+    color: #ffc107;
+}
+
+
+.priority-badge {
+    padding: 6px 12px !important;
+    font-weight: 700 !important;
+}
+.priority-badge.high { background-color: #dc3545 !important; }
+.priority-badge.medium { background-color: #ffc107 !important; color: #000 !important; }
+.priority-badge.low { background-color: #198754 !important; }
+
+
+.action-icon-edit { color: #2b3035; cursor: pointer; transition: 0.2s; }
+.action-icon-edit:hover { color: #ffc107; transform: scale(1.2); }
+.action-icon-delete { color: #dc3545; cursor: pointer; transition: 0.2s; }
+.action-icon-delete:hover { transform: scale(1.2); }
+
+.task-title-text {
+    color: #2b3035;
+    letter-spacing: -0.5px;
+}
+
+.custom-select-task {
+    height: 38px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
 }
 
 @keyframes slideIn {
-    from { opacity: 0; transform: scale(0.9); }
-    to { opacity: 1; transform: scale(1); }
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
-.action-icon {
-    cursor: pointer !important;
-    margin-left: 10px;
-    font-size: 1.1rem;
-    transition: transform 0.2s, color 0.2s;
-    /* Osiguravamo da su vidljive */
-    display: inline-block !important;
-    visibility: visible !important;
-}
-
-.action-icon:hover {
-    transform: scale(1.2);
-}

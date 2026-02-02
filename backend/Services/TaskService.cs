@@ -35,8 +35,6 @@ namespace backend.Services
             };
 
             await _taskRepo.Create(task);
-
-            // Redis keširanje (HASH za podatke, SET za vezu sa korisnikom)
             await _redisService.CacheTaskData(task.Id.ToString(), title, description, task.Priority, task.DueDate);
             await _redisService.AddTaskToUserSet(userId.ToString(), task.Id.ToString());
 
@@ -47,8 +45,7 @@ namespace backend.Services
         {
             List<TodoTask> tasks = new List<TodoTask>();
 
-            // Vuku se SAMO aktivni zadaci iz REDIS-a
-            // Ignorišemo status "completed" i ne pozivamo Cassandru uopšte ovde
+    
             var taskIds = await _redisService.GetUserTaskIds(userId.ToString());
             foreach (var id in taskIds)
             {
@@ -63,7 +60,7 @@ namespace backend.Services
                         Description = taskData["description"],
                         Priority = taskData["priority"],
                         DueDate = string.IsNullOrEmpty(taskData["dueDate"]) ? null : DateTime.Parse(taskData["dueDate"]),
-                        CreatedAt = DateTime.UtcNow, // Redis ne mora da pamti tačan CreatedAt za listu
+                        CreatedAt = DateTime.UtcNow, 
                         IsCompleted = false
                     });
                 }
@@ -71,7 +68,7 @@ namespace backend.Services
 
             return ApplySorting(tasks, sortBy);
         }
-        // --- VRATIO SAM METODE KOJE SU FALILE ---
+      
 
         public async Task<List<TodoTask>> GetActiveTasks(Guid userId)
             => await GetFilteredTasks(userId, "active", "date");
@@ -79,15 +76,13 @@ namespace backend.Services
         public async Task<List<KeyValuePair<string, double>>> GetLeaderboard()
             => await _redisService.GetTopUsers(5);
 
-        // ----------------------------------------
 
         public async Task CompleteTask(Guid userId, Guid taskId, string username)
         {
             var task = await _taskRepo.GetById(userId, taskId);
-            if (task == null) throw new Exception("Zadatak nije pronađen.");
+            if (task == null) throw new Exception("Zadatak nije pronadjen.");
 
-            // Određujemo koliko poena vredi ovaj zadatak
-            // Možeš prilagoditi brojeve (npr. 1, 2, 3 ili 5, 10, 15)
+           
             int weight = task.Priority?.ToLower() switch
             {
                 "high" => 3,
@@ -99,17 +94,16 @@ namespace backend.Services
             task.IsCompleted = true;
             task.CompletedAt = DateTime.UtcNow;
 
-            // Arhiviranje u Cassandri (ovde ostaje podatak za grafikon produktivnosti)
+          
             await _taskRepo.Update(task);
-
-            // Šaljemo weight u Redis metodu
+         
             await _redisService.CompleteTaskCheckOff(userId.ToString(), taskId.ToString(), username, weight);
         }
 
         public async Task UpdateTask(Guid userId, Guid taskId, UpdateTaskDTO taskDto)
         {
             var task = await _taskRepo.GetById(userId, taskId);
-            if (task == null) throw new Exception("Zadatak nije pronađen.");
+            if (task == null) throw new Exception("Zadatak nije pronadjen.");
 
             task.Title = taskDto.Title;
             task.Description = taskDto.Description;

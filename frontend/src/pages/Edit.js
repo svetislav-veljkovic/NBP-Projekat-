@@ -28,7 +28,7 @@ function Edit() {
         setFetching(false);
       })
       .catch(err => {
-        toast.error("Greška pri učitavanju podataka");
+        toast.error("Greška pri ucitavanju podataka");
         setFetching(false);
       });
   }, []);
@@ -47,7 +47,6 @@ function Edit() {
     formData.append('id', user.id); 
     formData.append('name', user.name);
     formData.append('lastName', user.lastName);
-    // Email i Username ne šaljemo jer smo odlučili da su read-only
     
     if (selectedFile) {
         formData.append('image', selectedFile);
@@ -58,7 +57,7 @@ function Edit() {
       toast.success("Profil uspešno ažuriran!");
       setTimeout(() => navigate('/profile'), 1500);
     } catch (err) {
-      const errorMsg = err.response?.data?.message || err.response?.data || "Greška pri čuvanju";
+      const errorMsg = err.response?.data?.message || err.response?.data || "Greska pri cuvanju";
       toast.error(errorMsg);
     } finally {
       setLoading(false);
@@ -66,7 +65,7 @@ function Edit() {
   };
 
   if (fetching) return (
-    <div className="d-flex justify-content-center align-items-center" style={{height: '100vh'}}>
+    <div className="fetching-loader">
       <Spinner animation="border" variant="primary" />
     </div>
   );
@@ -79,7 +78,7 @@ function Edit() {
             <MDBCard className='bg-glass shadow-5'>
               <MDBCardBody className='p-5'>
                 
-                <div className='header mb-5'>
+                <div className='header mb-5 edit-header'>
                     <div className='text'>Izmeni profil</div>
                     <div className='underline'></div>
                 </div>
@@ -108,15 +107,14 @@ function Edit() {
                     required 
                   />
                   
-                  {/* Email je sada samo za čitanje */}
                   <MDBInput 
                     label='Email' 
                     type='email' 
                     value={user.email} 
                     readOnly 
                     wrapperClass='mb-4' 
-                    className='bg-light'
-                    title="Email nije moguće promeniti." 
+                    className='bg-light read-only-input'
+                    title="Email nije moguce promeniti." 
                   />
                   
                   <MDBInput 
@@ -125,18 +123,18 @@ function Edit() {
                     value={user.username} 
                     readOnly 
                     wrapperClass='mb-4' 
-                    className='bg-light'
-                    title="Korisničko ime nije moguće promeniti." 
+                    className='bg-light read-only-input'
+                    title="Korisničko ime nije moguce promeniti." 
                   />
                   
                   <MDBRow className="g-2">
                     <MDBCol size="6">
-                        <Button variant="light" onClick={() => navigate('/profile')} className="w-100 fw-bold border" disabled={loading}>
-                          OTKAŽI
+                        <Button variant="light" onClick={() => navigate('/profile')} className="btn-cancel-edit" disabled={loading}>
+                          OTKAZI
                         </Button>
                     </MDBCol>
                     <MDBCol size="6">
-                        <Button type='submit' className='btn-dark w-100 fw-bold' style={{backgroundColor: '#2B3035', border: 'none'}} disabled={loading}>
+                        <Button type='submit' className='btn-save-edit' disabled={loading}>
                             {loading ? <Spinner size="sm" /> : 'SAČUVAJ'}
                         </Button>
                     </MDBCol>

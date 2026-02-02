@@ -26,7 +26,7 @@ namespace backend.Models
         [Column("iscompleted")]
         public bool IsCompleted { get; set; }
 
-        // --- NOVA POLJA KOJA SU FALILA ---
+     
         [Column("priority")]
         public string Priority { get; set; } = "Medium";
 

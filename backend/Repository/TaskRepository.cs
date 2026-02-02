@@ -25,13 +25,13 @@ public class TaskRepository : ITaskRepository
     public async System.Threading.Tasks.Task<TodoTask> GetById(Guid userId, Guid taskId)
         => await _mapper.FirstOrDefaultAsync<TodoTask>("SELECT * FROM todo_task WHERE userid = ? AND id = ?", userId, taskId);
 
-    // Obavezno dodaj ovo da bi UpdateTask u servisu mogao da radi
+    
     public async System.Threading.Tasks.Task Update(TodoTask task)
         => await _mapper.UpdateAsync(task);
 
     public async System.Threading.Tasks.Task DeleteAllByUserId(Guid userId)
     {
-        // Briše sve redove koji imaju isti userid (ceo partition key)
+      
         var query = "DELETE FROM todo_task WHERE userid = ?";
         await _session.ExecuteAsync(new SimpleStatement(query, userId));
     }

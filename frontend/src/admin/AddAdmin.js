@@ -9,25 +9,20 @@ function AddAdminPage() {
 
     const submit = async (e) => {
         e.preventDefault();
-        
-        // Backend očekuje mala slova zbog konzistentnosti
         const targetUser = username.trim().toLowerCase();
 
-        if (!window.confirm(`Da li ste sigurni da želite da korisniku "${targetUser}" dodelite ADMIN prava?`)) {
+        if (!window.confirm(`Da li ste sigurni da zelite da korisniku "${targetUser}" dodelite ADMIN prava?`)) {
             return;
         }
 
         setIsLoading(true);
         try {
-            // PUT zahtev na /User/GiveAdmin?username=...
             await API.put(`/User/GiveAdmin?username=${targetUser}`);
-            
-            toast.success(`Korisnik "${targetUser}" je uspešno unapređen u admina!`);
+            toast.success(`Korisnik "${targetUser}" je uspesno unapredjen u admina!`);
             setUsername('');
         } catch (error) {
-            // Ispisujemo grešku koju je backend bacio (npr. "Korisnik ne postoji")
-            const errorMsg = error.response?.data || 'Greška prilikom dodele admin prava';
-            toast.error(typeof errorMsg === 'string' ? errorMsg : "Akcija neuspešna.");
+            const errorMsg = error.response?.data || 'Greska prilikom dodele admin prava';
+            toast.error(typeof errorMsg === 'string' ? errorMsg : "Akcija neuspesna.");
         } finally {
             setIsLoading(false);
         }
@@ -41,40 +36,28 @@ function AddAdminPage() {
                     <div className='underline'></div>
                 </div>
 
-                <p className="text-center text-muted mt-3 px-4">
-                    Unesite korisničko ime korisnika kojeg želite da unapredite. 
-                   
+                <p className="admin-instruction-text">
+                    Unesite korisnicko ime korisnika kojeg zelite da unapredite.
                 </p>
 
-                <div className='inputs' style={{ marginTop: '20px' }}>
+                <div className='inputs admin-input-margin'>
                     <div className='input-group-custom'>
                         <input 
                             type='text' 
+                            className='admin-input'
                             placeholder='Username korisnika...' 
                             value={username} 
                             onChange={(e) => setUsername(e.target.value)} 
                             required 
                             disabled={isLoading}
-                            style={{ 
-                                padding: '15px', 
-                                width: '100%', 
-                                borderRadius: '8px', 
-                                border: '1px solid #ddd',
-                                fontSize: '16px'
-                            }}
                         />
                     </div>
                 </div>
 
                 <button 
                     type='submit' 
-                    className='sign-in' 
+                    className={`sign-in ${isLoading ? 'loading' : ''}`}
                     disabled={isLoading}
-                    style={{ 
-                        marginTop: '30px', 
-                        backgroundColor: isLoading ? '#ccc' : '#4c00b0',
-                        cursor: isLoading ? 'not-allowed' : 'pointer'
-                    }}
                 >
                     {isLoading ? 'OBRADA...' : 'UNAPREDI U ADMINA'}
                 </button>

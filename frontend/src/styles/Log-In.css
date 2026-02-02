@@ -11,7 +11,6 @@
   align-items: center;
 }
 
-/* Stil za Naslov i Liniju ispod */
 .header {
   display: flex;
   flex-direction: column;
@@ -25,6 +24,8 @@
   color: #2B3035;
   font-size: 32px;
   font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .header .underline {
@@ -41,28 +42,43 @@
   gap: 1.5rem;
 }
 
-/* Stil za inpute unutar grupa */
 .input-group-custom {
   width: 100%;
   display: flex;
   flex-direction: column;
 }
 
-.input-group-custom input {
-  width: 100%;
-  height: 50px;
+
+.input-wrapper {
+  display: flex;
+  align-items: center;
   background: #f0f0f0;
   border: 1px solid #e0e0e0;
   border-radius: 8px;
   padding: 0 15px;
-  font-size: 16px;
-  outline: none;
   transition: 0.3s;
 }
 
-.input-group-custom input:focus {
+.input-wrapper:focus-within {
   border-color: #2B3035;
   background: #fff;
+}
+
+.login-icon {
+  font-size: 20px;
+  color: #6c757d;
+  margin-right: 10px;
+}
+
+.input-wrapper input {
+  width: 100%;
+  height: 50px;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 16px;
+  color: #333;
+  padding: 12px 0;
 }
 
 .sign-in {
@@ -77,15 +93,22 @@
   font-size: 16px;
   cursor: pointer;
   transition: 0.3s;
+  text-transform: uppercase;
 }
 
-.sign-in:hover {
+.sign-in:hover:not(:disabled) {
   background-color: #40464d;
   transform: translateY(-2px);
 }
 
+.sign-in:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+
 .btn-delete {
-  background-color: #d9534f !important; /* Bootstrap Danger crvena */
+  background-color: #d9534f !important;
 }
 
 .btn-delete:hover {

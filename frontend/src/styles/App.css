@@ -1,4 +1,4 @@
-/* --- GLOBALNI STILOVI --- */
+
 body {
   margin: 0;
   padding: 0;
@@ -8,30 +8,50 @@ body {
   overflow-x: hidden; 
 }
 
-/* POPRAVLJENO: Glavni kontejner više nije Flexbox.
-   To omogućava MDBootstrap Gridu (MDBRow, MDBCol) da radi ispravno.
-*/
 .main-content-wrapper {
-  padding-top: 100px; /* Malo veći razmak zbog visine navbara */
+  padding-top: 100px;
   min-height: 100vh;
   width: 100%;
-  display: block; /* Ključna promena */
+  display: block;
 }
 
-/* --- NAVBAR --- */
+
 .navbar {
   box-shadow: 0 2px 10px rgba(0,0,0,0.2);
   padding: 0.8rem 1rem !important;
   height: 80px;
+  background-color: #ffffff !important;
 }
 
-.navbar-brand {
+.brand-logo {
+  color: #ffc107 !important; 
   font-weight: 800;
   letter-spacing: 1px;
-  color: #ffc107 !important;
 }
 
-/* --- HOME / HERO SEKCIJA --- */
+.admin-nav-title {
+  color: #ffc107 !important;
+  font-weight: bold;
+}
+
+.user-nav-title {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.logout-item {
+  color: #dc3545 !important;
+  font-weight: bold;
+}
+
+ion-icon {
+  vertical-align: middle;
+  margin-right: 4px;
+  font-size: 1.1rem;
+}
+
+
 .background {
   position: relative;
   text-align: center;
@@ -47,9 +67,36 @@ body {
   filter: brightness(60%);
 }
 
-/* --- FORME (Login, Register, Edit Profile) --- */
+.animation-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  width: 100%;
+}
+
+
+.leaderboard-card-main {
+  transition: transform 0.3s ease;
+}
+
+.top-user-scale {
+  transform: scale(1.05);
+}
+
+.points-badge-home {
+  font-size: 1rem;
+  border-radius: 8px;
+  background-color: #212529 !important; 
+  color: #ffc107 !important; 
+  padding: 0.5rem 1rem;
+  display: inline-block;
+}
+
+
 .container1 {
-  margin: 20px auto; /* Centriranje forme na sredinu ekrana */
+  margin: 20px auto;
   max-width: 500px;
   width: 90%;
   padding: 2.5rem;
@@ -85,31 +132,7 @@ body {
   border-radius: 10px;
 }
 
-/* POPRAVLJENO: Inputi sada uvek zauzimaju 100% širine roditelja 
-*/
-.input-group-custom {
-  display: flex;
-  align-items: center;
-  width: 100%; 
-  box-sizing: border-box; /* Veoma bitno da padding ne kvari širinu */
-  background: #ffffff;
-  border: 1px solid #ddd;
-  border-radius: 10px;
-  padding: 10px 15px;
-  margin-bottom: 20px;
-  transition: all 0.3s ease;
-}
 
-.input-group-custom input {
-  background: transparent;
-  border: none;
-  outline: none;
-  width: 100%;
-  font-size: 16px;
-  color: #333;
-}
-
-/* --- DUGMIĆI --- */
 .sign-in {
   width: 100%;
   background-color: #2B3035;
@@ -130,27 +153,55 @@ body {
 }
 
 .btn-delete {
-  background-color: #6c757d !important; /* Siva za 'Otkaži' */
+  background-color: #6c757d !important;
 }
 
 .btn-delete:hover {
   background-color: #5a6268 !important;
 }
 
-/* Kontejner za dugmiće jedan pored drugog */
-.button-container {
+
+.chart-container {
+  width: 100%;
+  height: 350px;
+}
+
+.productivity-header .text {
+  font-size: 24px !important;
+}
+
+.custom-card {
+  border-radius: 15px;
+}
+
+@media (max-width: 768px) {
+  .container1 { padding: 1.5rem; }
+  .header .text { font-size: 24px; }
+  .background { height: 40vh; }
+}
+
+
+.loading-screen {
   display: flex;
-  gap: 15px;
+  justify-content: center;
+  align-items: center;
+  height: 80vh;
   width: 100%;
 }
 
-/* --- RESPONSIVE POPRAVKE --- */
-@media (max-width: 768px) {
-  .container1 {
-    padding: 1.5rem;
-  }
-  
-  .header .text {
-    font-size: 24px;
-  }
+.loading-text {
+  margin-left: 10px;
+  font-weight: 600;
+  color: #2b3035;
+}
+
+
+.form-select:focus {
+  border-color: #ffc107;
+  box-shadow: 0 0 0 0.25rem rgba(255, 193, 7, 0.25);
+}
+
+
+ion-icon {
+  pointer-events: none;
 }

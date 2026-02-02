@@ -9,10 +9,8 @@ namespace backend.Services
         public CassandraService()
         {
             var cluster = Cluster.Builder()
-                .AddContactPoints("127.0.0.1") // Adresa tvoje Cassandre
+                .AddContactPoints("127.0.0.1") 
                 .Build();
-
-            // Zameni 'todo_keyspace' imenom svog keyspace-a iz Cassandre
             _session = cluster.Connect("todo_keyspace");
         }
 

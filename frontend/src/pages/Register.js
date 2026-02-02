@@ -33,8 +33,6 @@ function Register() {
       return;
     }
 
-    // Priprema podataka: Trim i pretvaranje u mala slova za username/email
-    // Ovo osigurava da Cassandra i Redis uvek barataju sa konzistentnim ključevima
     const payload = {
       ...data,
       username: data.username.trim().toLowerCase(),
@@ -44,11 +42,10 @@ function Register() {
     setIsLoading(true);
     try {
       await API.post('/User/Register', payload);
-      
-      toast.success("Uspešna registracija! Preusmeravanje na prijavu...");
+      toast.success("Uspesna registracija! Preusmeravanje na prijavu...");
       setTimeout(() => navigate('/login'), 2000);
     } catch (error) {
-      const errorMsg = error.response?.data || "Greška pri registraciji";
+      const errorMsg = error.response?.data || "Greska pri registraciji";
       toast.error(typeof errorMsg === 'string' ? errorMsg : "Proverite unete podatke.");
     } finally {
       setIsLoading(false);
@@ -61,22 +58,22 @@ function Register() {
         <MDBRow className="d-flex justify-content-center align-items-center min-vh-100">
           
           <MDBCol md="6" className="text-center text-md-start d-flex flex-column justify-content-center d-none d-md-flex">
-            <h1 className="my-5 display-3 fw-bold ls-tight px-3" style={{ color: '#555' }}>
+            <h1 className="my-5 display-3 fw-bold ls-tight px-3 register-hero-title">
               Pridruži se <br />
-              <span style={{ color: '#4c00b0' }}>Organizuj se lako</span>
+              <span className="brand-accent-yellow">Organizuj se lako</span>
             </h1>
-            <p className="px-3 text-muted">
+            <p className="px-3 text-muted hero-description">
               Postani deo zajednice koja efikasno upravlja svojim vremenom. 
-              Završi zadatke, skupljaj poene i osvoji vrh rang liste!
+              Zavrsi zadatke, skupljaj poene i osvoji vrh rang liste!
             </p>
           </MDBCol>
 
-          <MDBCol md="6" style={{ maxWidth: '500px' }}>
+          <MDBCol md="6" className="register-card-column">
             <MDBCard className="bg-glass shadow-5">
               <MDBCardBody className="p-5">
-                <div className='header mb-4' style={{alignItems: 'flex-start'}}>
-                    <div className='text' style={{fontSize: '28px'}}>Registracija</div>
-                    <div className='underline' style={{margin: '0', width: '40px'}}></div>
+                <div className='header profile-section-header mb-4'>
+                    <div className='text small-header'>Registracija</div>
+                    <div className='underline short-underline'></div>
                 </div>
 
                 <form onSubmit={submit}>
@@ -89,14 +86,14 @@ function Register() {
                     </MDBCol>
                   </MDBRow>
                   
-                  <MDBInput onChange={handleInputChange} id="username" label="Korisničko ime" type="text" required wrapperClass="mb-4" disabled={isLoading} />
+                  <MDBInput onChange={handleInputChange} id="username" label="Korisnicko ime" type="text" required wrapperClass="mb-4" disabled={isLoading} />
                   <MDBInput onChange={handleInputChange} id="email" label="Email adresa" type="email" required wrapperClass="mb-4" disabled={isLoading} />
                   <MDBInput onChange={handleInputChange} id="password" label="Lozinka" type="password" required wrapperClass="mb-4" disabled={isLoading} />
                   <MDBInput onChange={handleInputChange} id="repeatedPassword" label="Ponovite lozinku" type="password" required wrapperClass="mb-4" disabled={isLoading} />
 
                   <button 
                     type="submit" 
-                    className="btn-dark-custom w-100 mb-4 py-2 d-flex justify-content-center align-items-center"
+                    className="sign-in mb-4 d-flex justify-content-center align-items-center"
                     disabled={isLoading}
                   >
                     {isLoading ? <Spinner size="sm" className="me-2" /> : 'KREIRAJ NALOG'}
@@ -104,7 +101,7 @@ function Register() {
 
                   <div className="text-center">
                     <p className="small text-muted">
-                        Već imate nalog? <span className="fw-bold text-dark" style={{cursor:'pointer'}} onClick={() => navigate('/login')}>Prijavi se</span>
+                        Vec imate nalog? <span className="login-link" onClick={() => navigate('/login')}>Prijavi se</span>
                     </p>
                   </div>
                 </form>

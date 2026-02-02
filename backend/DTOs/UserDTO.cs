@@ -10,7 +10,7 @@ namespace backend.DTOs
         public string? Username { get; set; }
         public string? Email { get; set; }
         public string? ProfilePicture { get; set; }
-        public bool IsAdmin { get; set; } // NOVO: Za React Navbar login logiku
+        public bool IsAdmin { get; set; } 
     }
 
     public class UserRegisterDTO
@@ -38,7 +38,6 @@ namespace backend.DTOs
         [FromForm(Name = "image")]
         public IFormFile? Image { get; set; }
 
-        // Ovo polje popunjavamo u kontroleru, ne dolazi sa frontenda
         public string? ProfilePicture { get; set; }
     }
     public class UserLoginDTO
@@ -51,6 +50,6 @@ namespace backend.DTOs
     {
         public string? Id { get; set; }
         public string? Username { get; set; }
-        public bool IsAdmin { get; set; } // NOVO
+        public bool IsAdmin { get; set; } 
     }
 }

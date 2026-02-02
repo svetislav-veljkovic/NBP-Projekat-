@@ -5,8 +5,7 @@
         public string Title { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
 
-        // NOVO: Dodata polja za proširenu funkcionalnost
-        public string Priority { get; set; } = "Medium"; // Default vrednost
+        public string Priority { get; set; } = "Medium"; 
         public DateTime? DueDate { get; set; }
     }
 
