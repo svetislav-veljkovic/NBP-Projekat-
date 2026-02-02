@@ -9,18 +9,24 @@ function Home() {
   const [bestUsers, setBestUsers] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    API.get("/Task/Leaderboard")
-      .then(res => {
-        // Uzimamo prva 4 za home page, ostali su na /scoreboard
-        setBestUsers(res.data.slice(0, 4));
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error('Greška pri dohvatanju ranga:', err);
-        setLoading(false);
-      });
-  }, []);
+useEffect(() => {
+    const fetchLeaders = (isInitialLoad = false) => {
+        if (isInitialLoad) setLoading(true);
+        API.get("/Task/Leaderboard")
+            .then(res => {
+                setBestUsers(res.data.slice(0, 4));
+            })
+            .catch(err => console.error('Greška:', err))
+            .finally(() => {
+                if (isInitialLoad) setLoading(false);
+            });
+    };
+
+    fetchLeaders(true);
+    const interval = setInterval(() => fetchLeaders(false), 60000);           // OSVEZAVANJE SCOREBOARD
+
+    return () => clearInterval(interval);
+}, []);
 
   // Funkcija za boju trofeja na osnovu ranga
   const getRankColor = (index) => {

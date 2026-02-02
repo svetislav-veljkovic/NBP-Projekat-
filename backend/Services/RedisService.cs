@@ -67,19 +67,38 @@ namespace backend.Services
         // --- 4. CHECK-OFF OPERACIJA (Brisanje + Scoreboard) ---
         public async Task CompleteTaskCheckOff(string userId, string taskId, string username, int weight)
         {
-            // 1. Brišemo vezu iz SET-a korisnika (Redis Set)
+            // 1. Standardne operacije
             await _db.SetRemoveAsync($"user_tasks:{userId}", taskId);
-
-            // 2. Brišemo detalje o zadatku (Redis Hash)
             await _db.KeyDeleteAsync($"task:{taskId}");
-
-            // 3. Inkrementiramo globalni scoreboard za WEIGHT (Sorted Set - ZINCRBY)
-            // Profesor će ovo ceniti jer nije puko brojanje, već rangiranje po težini
             await _db.SortedSetIncrementAsync(ScoreboardKey, username, weight);
-
-            // 4. Ažuriramo score i u korisničkom Hash-u
             await _db.HashIncrementAsync($"user:{userId}", "score", weight);
+
+            // 2. DINAMIČKI TTL (Reset u ponedeljak 00:00 po srpskom vremenu)
+            var currentTtl = await _db.KeyTimeToLiveAsync(ScoreboardKey);
+
+            if (currentTtl == null || currentTtl.Value.TotalSeconds < 0)
+            {
+                // Dobijamo tačno vreme u Srbiji (sa uračunatim letnjim/zimskim računanjem)
+                var serbiaZone = TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time");
+                DateTime naseVreme = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, serbiaZone);
+
+                // Izračunavamo dane do ponedeljka
+                int daysUntilMonday = ((int)DayOfWeek.Monday - (int)naseVreme.DayOfWeek + 7) % 7;
+                if (daysUntilMonday == 0) daysUntilMonday = 7;
+
+                // Ciljamo ponedeljak 00:00:00
+                DateTime sledeciPonedeljak = naseVreme.AddDays(daysUntilMonday).Date;
+
+                // Razlika između "sledećeg ponedeljka u ponoć" i "sada"
+                TimeSpan vremeDoReseta = sledeciPonedeljak - naseVreme;
+
+
+                // TimeSpan vremeDoReseta = TimeSpan.FromMinutes(1);                                  ZA TESTRIRANJE TTL SCOREBOARD 
+               
+                await _db.KeyExpireAsync(ScoreboardKey, vremeDoReseta);
+            }
         }
+        
 
         // Metoda za dobavljanje zadataka iz keša (za brzi pristup profilu)
         public async Task<List<Dictionary<string, string>>> GetTasksFromRedis(string userId)

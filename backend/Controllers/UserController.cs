@@ -47,7 +47,7 @@ namespace backend.Controllers
                 var user = await _userService.GetUserByEmail(loginDto.Email!);
 
                 // 3. UPIS U REDIS (Token je ključ, UserID je vrednost)
-                await _redisService.SaveUserSession(jwt, user.Id.ToString(), TimeSpan.FromMinutes(30));
+                await _redisService.SaveUserSession(jwt, user.Id.ToString(), TimeSpan.FromMinutes(5));                ///TTL za SESIJU
 
                 // 4. POSTAVLJANJE KOLAČIĆA
                 Response.Cookies.Append("jwt", jwt, new CookieOptions

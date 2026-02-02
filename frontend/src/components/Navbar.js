@@ -29,9 +29,9 @@ function OurNavbar({ userId, username, isAdmin }) {
     // 30 minuta * 60 sekundi * 1000 milisekundi
     if (userId && userId !== -1) {
       logoutTimerRef.current = setTimeout(() => {
-        alert("Sesija je istekla.");
+        
         logout();
-      }, 30 * 60 * 1000);
+      }, 5 * 60 * 1000);                               // TIMER ZA TTL SESIJU 
     }
   }, [userId, logout]);
 

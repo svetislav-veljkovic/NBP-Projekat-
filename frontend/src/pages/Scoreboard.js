@@ -8,19 +8,29 @@ function Scoreboard({ username }) { // Primamo trenutni username kao prop
     const [leaders, setLeaders] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        const fetchLeaders = async () => {
-            try {
-                const res = await API.get("/Task/Leaderboard");
-                setLeaders(res.data);
-            } catch (err) {
-                console.error("Greška pri učitavanju rang liste", err);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchLeaders();
-    }, []);
+  useEffect(() => {
+    // 1. Definišemo funkciju za dovlačenje podataka
+    const fetchLeaders = async () => {
+        try {
+            const res = await API.get("/Task/Leaderboard");
+            setLeaders(res.data);
+        } catch (err) {
+            console.error("Greška pri učitavanju rang liste", err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // 2. Pozovemo je odmah pri učitavanju komponente
+    fetchLeaders();
+
+    // 3. Postavimo interval (npr. na svakih 30 sekundi ili 1 minut)
+    // 1 * 60 * 1000 = 1 minut    
+    const interval = setInterval(fetchLeaders, 60000);                       // OSVEZAVANJE SCOREBOARD
+
+    // 4. Čišćenje intervala kada korisnik ode sa stranice (veoma bitno!)
+    return () => clearInterval(interval);
+}, []); // Prazan niz znači da se ovo pokreće samo jednom pri mount-ovanju
 
     return (
         <MDBContainer className="mt-5 pt-5 pb-5">
