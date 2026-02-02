@@ -7,7 +7,7 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using Microsoft.OpenApi.Models; // OBAVEZNO DODAJ OVO
+using Microsoft.OpenApi.Models; 
 
 var builder = WebApplication.CreateBuilder(args);
 

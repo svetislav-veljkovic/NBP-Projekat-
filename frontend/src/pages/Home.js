@@ -16,7 +16,7 @@ function Home() {
         .then(res => {
           setBestUsers(res.data.slice(0, 4));
         })
-        .catch(err => console.error('Greška:', err))
+        .catch(err => console.error('Greska:', err))
         .finally(() => {
           if (isInitialLoad) setLoading(false);
         });

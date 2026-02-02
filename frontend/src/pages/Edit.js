@@ -28,7 +28,7 @@ function Edit() {
         setFetching(false);
       })
       .catch(err => {
-        toast.error("Greška pri ucitavanju podataka");
+        toast.error("Greska pri ucitavanju podataka");
         setFetching(false);
       });
   }, []);
@@ -54,7 +54,7 @@ function Edit() {
 
     try {
       await API.put("/User/Edit", formData);
-      toast.success("Profil uspešno ažuriran!");
+      toast.success("Profil uspesno azuriran!");
       setTimeout(() => navigate('/profile'), 1500);
     } catch (err) {
       const errorMsg = err.response?.data?.message || err.response?.data || "Greska pri cuvanju";
@@ -118,13 +118,13 @@ function Edit() {
                   />
                   
                   <MDBInput 
-                    label='Korisničko ime' 
+                    label='Korisnicko ime' 
                     type='text' 
                     value={user.username} 
                     readOnly 
                     wrapperClass='mb-4' 
                     className='bg-light read-only-input'
-                    title="Korisničko ime nije moguce promeniti." 
+                    title="Korisnicko ime nije moguce promeniti." 
                   />
                   
                   <MDBRow className="g-2">
@@ -135,7 +135,7 @@ function Edit() {
                     </MDBCol>
                     <MDBCol size="6">
                         <Button type='submit' className='btn-save-edit' disabled={loading}>
-                            {loading ? <Spinner size="sm" /> : 'SAČUVAJ'}
+                            {loading ? <Spinner size="sm" /> : 'SACUVAJ'}
                         </Button>
                     </MDBCol>
                   </MDBRow>

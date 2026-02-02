@@ -28,7 +28,7 @@ function LogIn({ setUserId, setUsername, setIsAdmin, refreshUser }) {
       const usernameVal = user.username || user.Username;
       const adminVal = user.isAdmin || user.IsAdmin || false;
 
-      toast.success(`Dobrodošao, ${usernameVal}!`);
+      toast.success(`Dobrodosao, ${usernameVal}!`);
 
       if (refreshUser) {
         await refreshUser(); 

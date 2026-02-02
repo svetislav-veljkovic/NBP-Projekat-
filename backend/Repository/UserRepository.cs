@@ -79,7 +79,7 @@ namespace backend.Repository
             }
             else
             {
-                throw new Exception("Korisnik nije pronađen u bazi.");
+                throw new Exception("Korisnik nije pronadjen u bazi.");
             }
         }
 
@@ -96,7 +96,7 @@ namespace backend.Repository
             }
             else
             {
-                throw new Exception("Korisnik nije pronađen u bazi.");
+                throw new Exception("Korisnik nije pronadjen u bazi.");
             }
         }
     }

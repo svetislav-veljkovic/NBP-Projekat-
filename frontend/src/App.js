@@ -46,7 +46,7 @@ function App() {
       return (
         <div className="loading-screen">
           <div className="spinner-border text-warning" role="status"></div>
-          <span className="loading-text">Učitavanje...</span>
+          <span className="loading-text">Ucitavanje...</span>
         </div>
       );
     }
