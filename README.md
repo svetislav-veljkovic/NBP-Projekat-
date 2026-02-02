@@ -30,7 +30,20 @@ Redis sluzi kao sloj za kesiranje i obradu podataka u realnom vremenu.
 
 ## Instalacija i Pokretanje
 
-### 1. Baza Podataka (Docker)
+### Baza Podataka (Docker)
 Pokretanje Cassandra i Redis kontejnera:
 
 docker-compose up -d
+
+### Backend (API)
+Pokretanje:
+
+cd backend
+dotnet run
+
+### Frontend (React)
+Pokretanje:
+
+cd frontend
+npm install
+npm start
