@@ -110,7 +110,7 @@ function Register() {
           </MDBCol>
         </MDBRow>
       </MDBContainer>
-      <ToastContainer position="top-right" autoClose={3000} />
+      <ToastContainer position="top-right" theme="dark" limit={1} autoClose={3000} hideProgressBar={false} newestOnTop={true} closeOnClick pauseOnHover closeButton={false} />
     </div>
   );
 }

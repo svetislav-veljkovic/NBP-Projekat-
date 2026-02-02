@@ -204,7 +204,7 @@ function Tasks({ userId }) {
           <div className="text-center w-100 py-5"><p className="text-muted">Trenutno nema aktivnih zadataka. Kreiraj jedan iznad!</p></div>
         )}
       </MDBRow>
-      <ToastContainer position="bottom-right" theme="dark" />
+      <ToastContainer position="bottom-right" theme="dark" limit={1} autoClose={3000} hideProgressBar={false} newestOnTop={true} closeOnClick pauseOnHover closeButton={false} />
     </MDBContainer>
   );
 }

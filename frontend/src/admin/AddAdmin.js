@@ -62,7 +62,7 @@ function AddAdminPage() {
                     {isLoading ? 'OBRADA...' : 'UNAPREDI U ADMINA'}
                 </button>
             </form>
-            <ToastContainer position="top-right" autoClose={3000} />
+            <ToastContainer position="top-right" atheme="dark" limit={1} autoClose={3000} hideProgressBar={false} newestOnTop={true} closeOnClick pauseOnHover closeButton={false} />
         </div>
     );
 }

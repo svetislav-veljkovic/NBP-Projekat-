@@ -124,7 +124,7 @@ function Profile() {
           </MDBCol>
         </MDBRow>
       </MDBContainer>
-      <ToastContainer position="bottom-right" />
+      <ToastContainer position="bottom-right"  theme="dark"  limit={1} autoClose={3000} hideProgressBar={false} newestOnTop={true} closeOnClick pauseOnHover closeButton={false}  />
     </div>
   );
 }

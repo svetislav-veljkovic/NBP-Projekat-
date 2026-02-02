@@ -205,3 +205,36 @@ ion-icon {
 ion-icon {
   pointer-events: none;
 }
+
+
+
+.Toastify__toast-container {
+  width: 350px !important;
+}
+
+
+.Toastify__toast-icon {
+  width: 22px !important;   
+  height: 22px !important;  
+  margin-top: 0px;
+  flex-shrink: 0;           
+}
+
+
+.Toastify__toast-icon svg {
+  width: 22px !important;
+  height: 22px !important;
+  display: block;
+}
+
+
+.Toastify__toast-body {
+  align-items: center !important;
+  padding: 8px !important;
+  font-size: 14px !important;
+}
+
+
+.Toastify__toast-body > div:last-child {
+  padding-left: 10px;
+}

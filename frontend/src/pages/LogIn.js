@@ -93,7 +93,7 @@ function LogIn({ setUserId, setUsername, setIsAdmin, refreshUser }) {
           {loading ? <Spinner animation="border" size="sm" /> : "PRIJAVI SE"}
         </button>
       </form>
-      <ToastContainer position="top-right" autoClose={2000} />
+      <ToastContainer position="top-right" theme="dark"  limit={1} autoClose={3000} hideProgressBar={false} newestOnTop={true} closeOnClick pauseOnHover closeButton={false}   />
     </div>
   );
 }
